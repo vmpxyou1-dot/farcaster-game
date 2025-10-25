@@ -1,14 +1,14 @@
 {
   "accountAssociation": {
     "header": "eyJmaWQiOjUzNDM3NCwidHlwZSI6ImF1dGgiLCJrZXkiOiIweEExNEZBZjRFRTIwZTg0MTQ2QTkwMzMwMTk3MTQyNzI1Mzk5NTVERjMifQ",
-    "payload": "eyJkb21haW4iOiJmYXJjYXN0ZXItZ2FtZS1pZG1vYXMtcHJvamVjdHMudmVyY2VsLmFwcCJ9",
+    "payload": "eyJkb21haW4iOiJmYXJjYXN0ZXItZ2FtZS10d28udmVyY2VsLmFwcCJ9",
     "signature": "8NaAYOUpm2gtzgVyVpt43TiFlHpBi0uF6jKJdfCAWFoiEyDTtJ7njorsexgod03+mfrheE7rvV2jWLnmmGI42hw="
   },
   "miniapp": {
     "version": "1",
     "name": "Farcaster Game",
     "iconUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Game_icon.png",
-    "homeUrl": "farcaster-game-two.vercel.app",
+    "homeUrl": "https://farcaster-game-two.vercel.app/",
     "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Tetris_Gameplay.jpg/640px-Tetris_Gameplay.jpg",
     "buttonTitle": "Play Now",
     "splashImageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Tetris_Gameplay.jpg/640px-Tetris_Gameplay.jpg",
