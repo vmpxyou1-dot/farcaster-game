@@ -260,6 +260,8 @@
           <span class="score-display" id="rollDisplay">1/3</span>
           <span class="info">Score:</span>
           <span class="score-display" id="scoreDisplay">0</span>
+          <span class="info">Misses:</span>
+          <span class="score-display" id="missDisplay" style="color: #ef4444;">0/3</span>
           <span class="info">Pins:</span>
           <span class="score-display" id="pinsDisplay">10/10</span>
         </div>
@@ -275,7 +277,7 @@ sdk.actions.ready();
 
 /* ===== CONFIG ===== */
 const USE_BASE_SEPOLIA = false;
-const RECIPIENT = "0xc4EB7B433f9911a15c18729D8BE5e5fDa1187E1a";
+const RECIPIENT = "0x02212a875c56baE7AF27A5a389FD4e8A11442692";
 const AMOUNT_ETH = "0.00001";
 
 const BASE_MAINNET = { chainId: "0x2105",  explorer: "https://basescan.org/tx/" };
@@ -297,6 +299,7 @@ const resetBtn = document.getElementById('resetBtn');
 const frameDisplay = document.getElementById('frameDisplay');
 const rollDisplay = document.getElementById('rollDisplay');
 const scoreDisplay = document.getElementById('scoreDisplay');
+const missDisplay = document.getElementById('missDisplay');
 const pinsDisplay = document.getElementById('pinsDisplay');
 
 const showStatus = () => statusEl.classList.remove('hidden');
@@ -380,6 +383,8 @@ let gameState = {
   frame: 1,
   roll: 1,
   maxRolls: 3,
+  missedFrames: 0,
+  maxMissedFrames: 3,
   power: 0,
   aim: 0,
   charging: false,
@@ -574,19 +579,39 @@ function handleRollComplete() {
   
   if (gameState.roll === 1) {
     if (pinsKnocked === 10) {
+      // Strike!
       showMessage('STRIKE! ⚡', '#fbbf24');
+      gameState.missedFrames = 0; // Reset missed count on strike
       nextFrame();
     } else {
       gameState.roll = 2;
     }
   } else if (gameState.roll === 2) {
     if (pinsKnocked === 10) {
+      // Spare!
       showMessage('SPARE! ✨', '#34d399');
+      gameState.missedFrames = 0; // Reset missed count on spare
       nextFrame();
     } else {
       gameState.roll = 3;
     }
   } else if (gameState.roll === 3) {
+    // Check if all 3 rolls missed (no pins knocked down)
+    if (pinsKnocked === 0) {
+      gameState.missedFrames++;
+      showMessage('MISS! ❌ (' + gameState.missedFrames + '/3)', '#ef4444');
+      
+      // Check if lost (3 misses)
+      if (gameState.missedFrames >= gameState.maxMissedFrames) {
+        setTimeout(() => {
+          showMessage('3 MISSES - GAME OVER! 💀', '#ef4444');
+          setTimeout(endGame, 1500);
+        }, 1000);
+        return;
+      }
+    } else {
+      gameState.missedFrames = 0; // Reset if any pins were knocked
+    }
     nextFrame();
   }
   
@@ -601,7 +626,10 @@ function nextFrame() {
   
   gameState.frame++;
   gameState.roll = 1;
-  setTimeout(() => setupPins(), 1000);
+  setTimeout(() => {
+    setupPins();
+    updateDisplay();
+  }, 1000);
 }
 
 function endGame() {
@@ -614,15 +642,21 @@ function endGame() {
   ctx.fillStyle = '#e7ecf0';
   ctx.font = 'bold 48px system-ui';
   ctx.textAlign = 'center';
-  ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 40);
+  ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 60);
   
   ctx.font = 'bold 32px system-ui';
   ctx.fillStyle = '#fbbf24';
-  ctx.fillText('Final Score: ' + gameState.score, canvas.width / 2, canvas.height / 2 + 10);
+  ctx.fillText('Final Score: ' + gameState.score, canvas.width / 2, canvas.height / 2 - 10);
+  
+  if (gameState.missedFrames >= gameState.maxMissedFrames) {
+    ctx.font = 'bold 24px system-ui';
+    ctx.fillStyle = '#ef4444';
+    ctx.fillText('Lost: 3 Consecutive Misses', canvas.width / 2, canvas.height / 2 + 30);
+  }
   
   ctx.font = '18px system-ui';
   ctx.fillStyle = '#a8b6c1';
-  ctx.fillText('Payment required to play again', canvas.width / 2, canvas.height / 2 + 50);
+  ctx.fillText('Payment required to play again', canvas.width / 2, canvas.height / 2 + 65);
   
   playAgainBtn.classList.remove('hidden');
 }
@@ -669,7 +703,19 @@ function updateDisplay() {
   scoreDisplay.textContent = gameState.score;
   frameDisplay.textContent = gameState.frame + '/10';
   rollDisplay.textContent = gameState.roll + '/3';
+  missDisplay.textContent = gameState.missedFrames + '/3';
   pinsDisplay.textContent = pinsStanding + '/10';
+  
+  // Change miss color based on count
+  if (gameState.missedFrames === 0) {
+    missDisplay.style.color = '#34d399';
+  } else if (gameState.missedFrames === 1) {
+    missDisplay.style.color = '#fbbf24';
+  } else if (gameState.missedFrames === 2) {
+    missDisplay.style.color = '#fb923c';
+  } else {
+    missDisplay.style.color = '#ef4444';
+  }
 }
 
 /* ===== Game Loop ===== */
@@ -703,6 +749,7 @@ resetBtn.addEventListener('click', () => {
   gameState.score = 0;
   gameState.frame = 1;
   gameState.roll = 1;
+  gameState.missedFrames = 0;
   gameState.ball = null;
   gameState.rolling = false;
   gameState.charging = false;
@@ -735,6 +782,7 @@ playAgainBtn.addEventListener('click', (e) => {
     gameState.score = 0;
     gameState.frame = 1;
     gameState.roll = 1;
+    gameState.missedFrames = 0;
     gameState.ball = null;
     gameState.rolling = false;
     gameState.gameActive = true;
@@ -751,4 +799,3 @@ window.addEventListener('unhandledrejection', e => console.error('Unhandled prom
 </script>
 </body>
 </html>
-
