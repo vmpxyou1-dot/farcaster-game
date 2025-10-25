@@ -656,9 +656,31 @@ function endGame() {
   
   ctx.font = '18px system-ui';
   ctx.fillStyle = '#a8b6c1';
-  ctx.fillText('Payment required to play again', canvas.width / 2, canvas.height / 2 + 65);
+  ctx.fillText('Click button below to continue', canvas.width / 2, canvas.height / 2 + 65);
   
+  // Show play again button with payment flow
   playAgainBtn.classList.remove('hidden');
+  playAgainBtn.onclick = async (e) => {
+    e.preventDefault();
+    await payThen(async () => {
+      // Hide overlay and button
+      playAgainBtn.classList.add('hidden');
+      
+      // Reset game state
+      gameState.score = 0;
+      gameState.frame = 1;
+      gameState.roll = 1;
+      gameState.missedFrames = 0;
+      gameState.ball = null;
+      gameState.rolling = false;
+      gameState.gameActive = true;
+      throwBtn.disabled = false;
+      throwBtn.textContent = '🎳 HOLD & RELEASE';
+      
+      setupPins();
+      updateDisplay();
+    }, playAgainBtn);
+  };
 }
 
 function showMessage(text, color) {
@@ -775,23 +797,7 @@ playBtn.addEventListener('click', (e) => {
 });
 
 /* ===== Play Again (Pay-Gated) ===== */
-playAgainBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  payThen(() => {
-    playAgainBtn.classList.add('hidden');
-    gameState.score = 0;
-    gameState.frame = 1;
-    gameState.roll = 1;
-    gameState.missedFrames = 0;
-    gameState.ball = null;
-    gameState.rolling = false;
-    gameState.gameActive = true;
-    throwBtn.disabled = false;
-    throwBtn.textContent = '🎳 HOLD & RELEASE';
-    setupPins();
-    updateDisplay();
-  }, playAgainBtn);
-});
+// Note: Event handler is now set dynamically in endGame() function
 
 // Error handling
 window.addEventListener('error', e => console.error('Error:', e.error || e));
