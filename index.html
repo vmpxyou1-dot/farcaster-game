@@ -13,94 +13,36 @@
   .row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
   .title { font-weight:900; font-size:20px; margin:0 0 8px; letter-spacing:0.4px; }
   .muted { color:var(--muted); font-size:14px; line-height:1.35; }
-
-  /* Overlay + welcome */
   .overlay { position:fixed; inset:0; display:grid; place-items:center; background:linear-gradient(180deg, rgba(2,6,10,.6), rgba(2,6,10,.8)); backdrop-filter:blur(4px); padding:16px; z-index:30; }
   .overlay-card { width:min(640px,94vw); padding:22px; border-radius:16px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(61,119,255,0.06); box-shadow: 0 20px 60px rgba(8,12,16,.7); overflow:hidden; position:relative; }
-
-  /* neon welcome */
-  .welcome {
-    display:flex; gap:18px; align-items:center; justify-content:center;
-  }
+  .welcome { display:flex; gap:18px; align-items:center; justify-content:center; flex-direction:column; }
   .logo-burst { width:84px; height:84px; border-radius:18px; background:linear-gradient(135deg, rgba(61,215,255,0.12), rgba(110,243,195,0.06)); display:grid; place-items:center; border:1px solid rgba(61,215,255,0.08); box-shadow:0 8px 30px rgba(61,215,255,0.06), 0 0 26px rgba(61,215,255,0.04) inset; transform:rotate(-10deg); }
   .wave { width:44px; height:44px; border-radius:10px; background:linear-gradient(90deg,var(--accent1),var(--accent2)); filter:drop-shadow(0 6px 18px rgba(61,215,255,0.18)); animation:float 3.6s ease-in-out infinite; }
   @keyframes float { 0% { transform:translateY(0) rotate(-6deg); } 50% { transform:translateY(-6px) rotate(6deg); } 100% { transform:translateY(0) rotate(-6deg); } }
-
-  .welcome-text { display:flex; flex-direction:column; }
-  .welcome-h1 {
-    font-size:28px; font-weight:900; margin:0; line-height:1; letter-spacing:0.6px;
-    text-shadow:
-      0 1px 0 rgba(0,0,0,.6),
-      0 6px 20px rgba(61,215,255,0.06),
-      0 0 18px rgba(61,215,255,0.12);
-    color:linear-gradient(90deg,#6ef3c3,#3dd7ff);
-    background:linear-gradient(90deg,var(--accent1),var(--accent2));
-    -webkit-background-clip:text; background-clip:text; color:transparent;
-    animation:popIn 700ms cubic-bezier(.2,.9,.25,1) both;
-  }
+  .welcome-text { display:flex; flex-direction:column; align-items:center; }
+  .welcome-h1 { font-size:28px; font-weight:900; margin:0; line-height:1; letter-spacing:0.6px; text-shadow: 0 1px 0 rgba(0,0,0,.6), 0 6px 20px rgba(61,215,255,0.06), 0 0 18px rgba(61,215,255,0.12); background:linear-gradient(90deg,var(--accent1),var(--accent2)); -webkit-background-clip:text; background-clip:text; color:transparent; animation:popIn 700ms cubic-bezier(.2,.9,.25,1) both; text-align:center; }
   @keyframes popIn { 0% { transform:translateY(14px) scale(.98); opacity:0 } 100% { transform:translateY(0) scale(1); opacity:1 } }
-
-  /* Play button neon */
   .pay-row { display:flex; justify-content:center; align-items:center; gap:12px; margin-top:18px; }
-  .btn-play {
-    --g1: #36f0c6; --g2: #3dd7ff;
-    padding:12px 18px; border-radius:14px; border:0; font-weight:900; letter-spacing:0.6px;
-    background:linear-gradient(90deg,var(--g1), var(--g2));
-    color:#02110d;
-    box-shadow:
-      0 4px 20px rgba(61,215,255,0.12),
-      0 0 30px rgba(61,215,255,0.18),
-      inset 0 -6px 20px rgba(255,255,255,0.04);
-    cursor:pointer; transition:transform .16s ease, box-shadow .16s ease, filter .16s ease;
-    position:relative; overflow:visible;
-  }
+  .btn-play { --g1: #36f0c6; --g2: #3dd7ff; padding:12px 18px; border-radius:14px; border:0; font-weight:900; letter-spacing:0.6px; background:linear-gradient(90deg,var(--g1), var(--g2)); color:#02110d; box-shadow: 0 4px 20px rgba(61,215,255,0.12), 0 0 30px rgba(61,215,255,0.18), inset 0 -6px 20px rgba(255,255,255,0.04); cursor:pointer; transition:transform .16s ease, box-shadow .16s ease, filter .16s ease; position:relative; overflow:visible; }
   .btn-play:hover { transform:translateY(-4px) scale(1.02); box-shadow:0 12px 44px rgba(61,215,255,0.18), 0 0 48px rgba(61,215,255,0.22); filter:brightness(1.02); }
   .btn-play:active { transform:translateY(-1px) scale(.998); }
-  .btn-play::after {
-    content:""; position:absolute; inset:0; border-radius:14px; pointer-events:none;
-    box-shadow: 0 0 40px rgba(61,215,255,0.12);
-    opacity:0.9; mix-blend-mode: screen;
-    transition:opacity .25s ease;
-  }
-
-  /* small status box inside card */
+  .btn-play::after { content:""; position:absolute; inset:0; border-radius:14px; pointer-events:none; box-shadow: 0 0 40px rgba(61,215,255,0.12); opacity:0.9; mix-blend-mode: screen; transition:opacity .25s ease; }
   #status { margin-top:12px; font-size:13px; line-height:1.35; background:rgba(255,255,255,0.02); border-radius:10px; padding:10px; display:none; color:var(--muted); }
   #status.show { display:block; }
-
-  /* Canvas & general UI */
   canvas { display:block; width:min(640px,96vw); height:auto; background:#0e1418; border:1px solid #1f2a32; border-radius:12px; margin:12px auto 10px; touch-action:none; }
   .hud { display:flex; justify-content:space-between; gap:8px; font-size:14px; color:#a8b6c1; margin-top:6px; }
   .kbd { background:#0f151a;border:1px solid #1f2a32;border-radius:8px;padding:2px 6px; }
-
-  /* mobile controls + play again button */
   #mobile-controls { display:none; margin:6px auto 0; user-select:none; }
   #mobile-controls .ctrl { width:64px; height:64px; font-size:22px; font-weight:800; background:linear-gradient(180deg,#1dd979,#16a34a); color:#04130c; border-radius:12px; border:0; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,.3); }
   #mobile-controls .row { justify-content:center; gap:10px; }
   @media (max-width:720px) { #mobile-controls { display:block; } .hud { font-size:12px; } }
-
   #play-again { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); padding:12px 18px; border-radius:12px; border:0; font-weight:700; background:linear-gradient(90deg,#3dd7ff,#6ef3c3); color:#02110d; cursor:pointer; box-shadow:0 10px 30px rgba(0,0,0,.28); z-index:40; display:none; }
-
-  /* Game Over overlay */
-  #game-over-overlay {
-    position:fixed;
-    inset:0;
-    display:none;
-    z-index:50;
-    background:linear-gradient(180deg, rgba(2,6,10,0.7), rgba(2,6,10,0.85));
-    align-items:center;
-    justify-content:center;
-    padding:20px;
-  }
+  #game-over-overlay { position:fixed; inset:0; display:none; z-index:50; background:linear-gradient(180deg, rgba(2,6,10,0.7), rgba(2,6,10,0.85)); align-items:center; justify-content:center; padding:20px; }
   #game-over-card { background:var(--card); padding:22px; border-radius:12px; text-align:center; border:1px solid rgba(255,255,255,0.02); }
   #game-over-card h2 { margin:0 0 12px; font-size:20px; color:#ff9b9b; }
   #game-over-card p { color:var(--muted); margin:0 0 16px; }
-
-  /* tiny responsive tweaks */
-  @media (max-width:520px) {
-    .welcome-h1 { font-size:20px; }
-    .logo-burst { width:64px; height:64px; border-radius:12px; }
-  }
-
+  @media (max-width:520px) { .welcome-h1 { font-size:20px; } .logo-burst { width:64px; height:64px; border-radius:12px; } }
+  .hidden { display:none !important; }
 </style>
 </head>
 <body>
@@ -110,61 +52,42 @@
         <div class="welcome">
           <div class="logo-burst"><div class="wave" aria-hidden="true"></div></div>
           <div class="welcome-text">
-            <h1 class="welcome-h1">Welcome to <span style="color:transparent;background:linear-gradient(90deg,var(--accent1),var(--accent2));-webkit-background-clip:text;background-clip:text;">Block Dude</span></h1>
+            <h1 class="welcome-h1">Play Bowling Pro</h1>
           </div>
         </div>
-
         <div class="pay-row">
-          <div style="display:flex;align-items:center;gap:12px;">
-            <button id="play" class="btn-play" type="button">Pay &amp; Play</button>
-          </div>
+          <button id="play" class="btn-play" type="button">PAY & PLAY</button>
         </div>
-
         <div id="status" aria-live="polite"></div>
       </div>
     </div>
-
-    <!-- Game canvas -->
     <canvas id="game" width="384" height="256" aria-label="Block Dude game area"></canvas>
-
-    <!-- On-screen mobile controls -->
     <div id="mobile-controls" class="hidden">
       <div class="row" style="margin-top:2px;"><button class="ctrl" data-dir="up">↑</button></div>
       <div class="row"><button class="ctrl" data-dir="left">←</button><button class="ctrl" data-dir="down">↓</button><button class="ctrl" data-dir="right">→</button></div>
     </div>
-
     <button id="play-again" type="button">Pay &amp; Play Again</button>
-
     <div class="hud">
-      <div>Controls: <span class="kbd">←</span> <span class="kbd">→</span> <span class="kbd">↓</span> / swipe / buttons</div>
+      <div>Controls: <span class="kbd">←</span> <span class="kbd">→</span> <span class="kbd">↓</span></div>
       <div class="muted">Time: <span id="timer">30</span>s — Hits: <span id="hit-count">0</span>/3</div>
     </div>
   </div>
-
   <div id="game-over-overlay">
     <div id="game-over-card">
       <h2>Game Over</h2>
-      <p id="game-over-message">You were hit too many times. Want to try again?</p>
-      <div style="display:flex;gap:12px;justify-content:center">
-        <button id="pay-play-again" class="btn-play" type="button">Pay &amp; Play Again</button>
-      </div>
+      <p id="game-over-message">Time's up!</p>
+      <button id="pay-play-again" class="btn-play" type="button">Pay &amp; Play Again</button>
     </div>
   </div>
-
 <script type="module">
   import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk'
   sdk.actions.ready();
-
-  /* ===== CONFIG ===== */
   const USE_BASE_SEPOLIA = false;
-  const RECIPIENT = "0xA14FAf4EE20e84146A9033019714272539955DF3";
+  const RECIPIENT = "0xc4EB7B433f9911a15c18729D8BE5e5fDa1187E1a";
   const AMOUNT_ETH = "0.00001";
-
   const BASE_MAINNET = { chainId: "0x2105",  explorer: "https://basescan.org/tx/" };
   const BASE_SEPOLIA = { chainId: "0x14a34", explorer: "https://sepolia.basescan.org/tx/" };
   const TARGET = USE_BASE_SEPOLIA ? BASE_SEPOLIA : BASE_MAINNET;
-
-  /* ===== UI elements ===== */
   const statusEl = document.getElementById('status');
   const playBtn = document.getElementById('play');
   const introOverlay = document.getElementById('intro-overlay');
@@ -175,15 +98,10 @@
   const gameOverOverlay = document.getElementById('game-over-overlay');
   const payPlayAgainBtn = document.getElementById('pay-play-again');
   const gameOverMessage = document.getElementById('game-over-message');
-
-  document.getElementById('recipient-text')?.textContent = RECIPIENT.slice(0,6) + "…" + RECIPIENT.slice(-4);
-
   const showStatus = () => statusEl.classList.add('show');
   const addLine = html => { showStatus(); statusEl.insertAdjacentHTML('beforeend', `<div>${html}</div>`); };
   const clearStatus = () => { statusEl.innerHTML = ''; statusEl.classList.remove('show'); };
   const disable = (el, yes=true) => { if (el) el.disabled = yes; };
-
-  /* ===== Wallet helpers (same approach) ===== */
   function parseEther(x){
     const [w,f=""]=String(x).split('.'); const frac=(f+'0'.repeat(18)).slice(0,18);
     return '0x'+(BigInt(w)*10n**18n+BigInt(frac)).toString(16);
@@ -204,23 +122,18 @@
       } else { throw e; }
     }
   }
-
-  /* ===== REQUIRED PAYMENT FLOW ===== */
   async function requiredPayment() {
     clearStatus();
     addLine(`<b>Step 1:</b> locating wallet provider…`);
     const provider = await getProvider();
     if (!provider) { addLine(`<span style="color:#f87171">No wallet available.</span> Open in Farcaster or enable a wallet.`); throw new Error('NO_PROVIDER'); }
     addLine(`<span style="color:#4ade80">Provider ready.</span>`);
-
     addLine(`<b>Step 2:</b> requesting accounts…`);
     const [from] = await provider.request({ method:'eth_requestAccounts' });
     addLine(`<span style="color:#cde7d8">Account: ${from.slice(0,6)}…${from.slice(-4)}</span>`);
-
     addLine(`<b>Step 3:</b> switching to Base…`);
     await ensureChain(provider, TARGET.chainId);
     addLine(`<span style="color:#4ade80">On Base${USE_BASE_SEPOLIA?' Sepolia':''}.</span>`);
-
     addLine(`<b>Step 4:</b> sending ${AMOUNT_ETH} ETH to ${RECIPIENT.slice(0,6)}…${RECIPIENT.slice(-4)}…`);
     const hash = await provider.request({
       method:'eth_sendTransaction',
@@ -229,12 +142,11 @@
     addLine(`<span style="color:#4ade80">TX sent.</span> <a target="_blank" rel="noopener" href="${TARGET.explorer}${hash}">View on Basescan</a>`);
     return hash;
   }
-
   async function payThen(action, triggerBtn) {
     try {
       disable(triggerBtn, true);
-      await requiredPayment();   // throws if anything fails
-      await action();            // runs when tx succeeded
+      await requiredPayment();
+      await action();
     } catch (e) {
       console.warn('Payment gate blocked action:', e);
       addLine(`<span style="color:#fbbf24">Payment required. Please try again.</span>`);
@@ -243,25 +155,19 @@
       disable(triggerBtn, false);
     }
   }
-
-  /* ===== Hook up top-level Pay button ===== */
   playBtn.addEventListener('click', (e)=>{
     e.preventDefault();
     payThen(() => {
       introOverlay.classList.add('hidden');
       clearStatus();
       initBlockDude();
-    }, playBtn).catch(()=>{ /* overlay remains visible */ });
+    }, playBtn).catch(()=>{});
   });
-
-  /* ===== Block Dude Game (initBlockDude) with hits/shots ===== */
   let currentGameState = null;
   function initBlockDude() {
     if (currentGameState && currentGameState.cleanup) currentGameState.cleanup();
-
     const canvas = document.getElementById('game');
     const context = canvas.getContext('2d');
-
     const grid = 32;
     const wallCanvas = document.createElement('canvas');
     const wallCtx = wallCanvas.getContext('2d');
@@ -275,7 +181,6 @@
     wallCtx.fillRect(11, 12, 21, 9);
     wallCtx.fillRect(0, 22, 21, 10);
     wallCtx.fillRect(23, 22, 10, 10);
-
     const types = { wall: '#', player: '@', block: '$', goal: '.', empty: ' ' };
     const level1 = `
  #    ##        ##
@@ -289,7 +194,6 @@
      #  $#
      #####
 `;
-
     const cells = [];
     let width = 0;
     let playerPos = { row: 0, col: 0 };
@@ -301,25 +205,19 @@
         if (colData === types.player) playerPos = { row, col };
       });
     });
-
     let playerDir = { row: 0, col: 0 };
     let playerFacing = -1;
     let rAF = null;
     let carryingBlock = false;
-
-    // HIT / SHOTS state
     let hits = 0;
     const maxHits = 3;
-    let shots = []; // each shot: {row, col}
+    let shots = [];
     let ticks = 0;
-    const spawnInterval = 90; // frames between shot spawns (tweakable)
-    const shotSpeed = 12; // frames per cell movement (lower==faster)
+    const spawnInterval = 90;
+    const shotSpeed = 12;
     let shotFrameCounter = 0;
-
-    // TIMER state (30 seconds)
     let timeRemaining = 30;
     let timerInterval = null;
-
     const keyHandler = function(e) {
       playerDir = { row: 0, col: 0 };
       if (e.key === 'ArrowLeft' || e.key.toLowerCase() === 'a') playerDir.col = -1;
@@ -352,11 +250,9 @@
         }
       }
     };
-
     function setupMobileControls(moveHandler) {
       if (!mobileCtrlEl) return;
       if (window.innerWidth <= 720) mobileCtrlEl.classList.remove('hidden');
-
       mobileCtrlEl.querySelectorAll('button.ctrl').forEach(btn => {
         const dir = btn.dataset.dir;
         btn.addEventListener('click', () => {
@@ -366,7 +262,6 @@
           if (dir === 'down') moveHandler({row:0, pick:true});
         });
       });
-
       let sx=0, sy=0, tracking=false;
       const onStart = (e) => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; tracking = true; };
       const onMove  = (e) => { if (tracking) e.preventDefault(); };
@@ -382,66 +277,52 @@
       document.addEventListener('touchstart', onStart, { passive:true });
       document.addEventListener('touchmove', onMove,  { passive:false });
       document.addEventListener('touchend', onEnd,   { passive:true });
-
       return () => {
         document.removeEventListener('touchstart', onStart);
         document.removeEventListener('touchmove', onMove);
         document.removeEventListener('touchend', onEnd);
       };
     }
-
     function clamp(min, max, value) { return Math.min(Math.max(min, value), max); }
-
     function move(startPos, endPos) {
       const startCell = cells[startPos.row][startPos.col];
       const endCell = cells[endPos.row][endPos.col];
       const isPlayer = startCell === types.player;
-
       switch(startCell) {
         case types.player:
         case types.block:
           cells[startPos.row][startPos.col] = types.empty;
           break;
       }
-
       switch(endCell) {
         case types.empty:
           cells[endPos.row][endPos.col] = isPlayer ? types.player : types.block;
           break;
       }
-
       playerFacing = endPos.col - startPos.col;
-
       if (carryingBlock) {
         cells[startPos.row - 1][startPos.col] = types.empty;
         cells[endPos.row - 1][endPos.col] = types.block;
       }
     }
-
     function spawnShot() {
-      // spawn shot at random column inside level width, at top (row 0)
       const spawnCol = clamp(0, width-1, Math.floor(Math.random() * width));
       shots.push({ row: 0, col: spawnCol });
     }
-
     function updateShots() {
       shotFrameCounter++;
-      // move shots every shotSpeed frames
       if (shotFrameCounter >= shotSpeed) {
         shotFrameCounter = 0;
         for (let i = shots.length - 1; i >= 0; i--) {
           shots[i].row += 1;
-          // remove if out of bounds
           if (shots[i].row >= cells.length) shots.splice(i,1);
           else {
-            // collision with player?
             if (shots[i].row === playerPos.row && shots[i].col === playerPos.col) {
-              // hit!
               hits++;
               hitCountEl.textContent = hits;
               shots.splice(i,1);
               if (hits >= maxHits) {
-                gameOverMessage.textContent = 'You were hit too many times. Want to try again?';
+                gameOverMessage.textContent = 'You were hit too many times!';
                 onGameFinish();
               }
             }
@@ -449,9 +330,7 @@
         }
       }
     }
-
     function drawShots(startRow, startCol) {
-      // shots drawn relative to viewport
       for (const s of shots) {
         const drawRow = s.row - startRow;
         const drawCol = s.col - startCol;
@@ -461,19 +340,15 @@
         }
       }
     }
-
     function loop() {
       rAF = requestAnimationFrame(loop);
       context.clearRect(0,0,canvas.width,canvas.height);
-
       ticks++;
       if (ticks % spawnInterval === 0) spawnShot();
       updateShots();
-
       let row = playerPos.row + playerDir.row;
       const col = playerPos.col + playerDir.col;
       const cell = cells[row] && cells[row][col];
-
       switch(cell) {
         case types.empty:
         case types.goal:
@@ -484,16 +359,13 @@
             rowBelow = row + 1 + playerDir.row;
             belowCell = (cells[rowBelow] && cells[rowBelow][col]);
           }
-
           move(playerPos, { row, col });
           playerPos.row = row; playerPos.col = col;
-
           if (cell === types.goal) {
             cancelAnimationFrame(rAF);
             onGameFinish(true);
           }
           break;
-
         case types.block:
         case types.wall:
           const rowAbove = row - 1 + playerDir.row;
@@ -505,22 +377,17 @@
           }
           break;
       }
-
       playerDir = { row: 0, col: 0 };
-
       context.strokeStyle = 'black';
       context.fillStyle = 'black';
       context.lineWidth = 2;
-
       const startRow = clamp(0, cells.length - 8, playerPos.row - 4);
       const startCol = clamp(0, width - 12, playerPos.col - 6);
-
       for (let r = startRow; r < cells.length; r++) {
         for (let c = startCol; c < (cells[r] ? cells[r].length : 0); c++) {
           const cc = cells[r][c];
           const drawRow = r - startRow;
           const drawCol = c - startCol;
-
           switch(cc) {
             case types.wall:
               context.drawImage(wallCanvas, drawCol * grid, drawRow * grid);
@@ -543,4 +410,42 @@
               context.beginPath();
               context.arc((drawCol + 0.5) * grid, (drawRow + 0.25) * grid, 7, 0, Math.PI, 1);
               context.fill();
-              context.fillRect((drawCol + 0.48) * grid, (drawRow + 0.4) * grid, 2, grid /
+              context.fillRect((drawCol + 0.48) * grid, (drawRow + 0.4) * grid, 2, grid / 2.5 );
+              context.fillRect((drawCol + 0.3) * grid, (drawRow + 0.6) * grid, grid / 2.5, 2);
+              context.moveTo((drawCol + 0.5) * grid, (drawRow + 0.8) * grid);
+              context.lineTo((drawCol + 0.65) * grid, (drawRow + 1) * grid);
+              context.moveTo((drawCol + 0.5) * grid, (drawRow + 0.8) * grid);
+              context.lineTo((drawCol + 0.35) * grid, (drawRow + 1) * grid);
+              context.stroke();
+              break;
+          }
+        }
+      }
+      drawShots(startRow, startCol);
+    }
+    function onGameFinish(isLevelComplete=false) {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+      if (isLevelComplete) {
+        playAgainBtn.style.display = 'block';
+        context.fillStyle = 'rgba(0,0,0,.5)';
+        context.fillRect(0,0,canvas.width,canvas.height);
+        context.fillStyle = '#e7ecf0';
+        context.font = 'bold 20px system-ui';
+        context.textAlign = 'center';
+        context.fillText('Congratulations — level complete', canvas.width/2, canvas.height/2 - 4);
+        context.font = '14px system-ui';
+        context.fillStyle = '#a8b6c1';
+        context.fillText('Payment required to play again', canvas.width/2, canvas.height/2 + 18);
+        const onceHandler = async (e) => {
+          e.preventDefault();
+          try {
+            await payThen(() => {
+              playAgainBtn.style.display = 'none';
+              clearStatus();
+              initBlockDude();
+            }, playAgainBtn);
+          } catch (err) {
+            playAgainBtn.addEventListener('click', onceHandler, {
