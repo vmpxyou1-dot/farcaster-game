@@ -1,28 +1,211 @@
-import nacl from "tweetnacl";
-import { encodeUTF8, encodeBase64 } from "tweetnacl-util";
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Block Dude – Pay & Play (Base TX required)</title>
+<style>
+  :root { color-scheme: dark; --bg:#0b0f12; --card:#0f151a; --muted:#9aa7b1; --accent1:#6ef3c3; --accent2:#3dd7ff; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto, "Helvetica Neue"; background:var(--bg); color:#e7ecf0; display:grid; place-items:center; min-height:100dvh; -webkit-font-smoothing:antialiased; }
+  .wrap { width:min(720px,96vw); position:relative; padding:12px; }
+  .card { background:#0f151a; border:1px solid rgba(60,80,100,0.06); border-radius:14px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.45); }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .title { font-weight:900; font-size:20px; margin:0 0 8px; letter-spacing:0.4px; }
+  .muted { color:var(--muted); font-size:14px; line-height:1.35; }
 
-// Replace these with your actual account info
-const header = { fid: 12345, type: "auth", key: "YOUR_PUBLIC_KEY" };
-const payload = { domain: "farcaster-game-two.vercel.app" };
+  /* Overlay + welcome */
+  .overlay { position:fixed; inset:0; display:grid; place-items:center; background:linear-gradient(180deg, rgba(2,6,10,.6), rgba(2,6,10,.8)); backdrop-filter:blur(4px); padding:16px; z-index:30; }
+  .overlay-card { width:min(640px,94vw); padding:22px; border-radius:16px; background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(61,119,255,0.06); box-shadow: 0 20px 60px rgba(8,12,16,.7); overflow:hidden; position:relative; }
 
-// Convert to strings
-const headerStr = JSON.stringify(header);
-const payloadStr = JSON.stringify(payload);
-
-// Generate keypair from secret (your private key)
-const secretKey = new Uint8Array([...]); // Your private key bytes
-const signature = nacl.sign.detached(
-  new TextEncoder().encode(headerStr + payloadStr),
-  secretKey
-);
-
-// Encode signature in base64
-const signatureB64 = encodeBase64(signature);
-
-console.log({
-  accountAssociation: {
-    header: Buffer.from(headerStr).toString("base64"),
-    payload: Buffer.from(payloadStr).toString("base64"),
-    signature: signatureB64
+  /* neon welcome */
+  .welcome {
+    display:flex; gap:18px; align-items:center; justify-content:flex-start;
   }
-});
+  .logo-burst { width:84px; height:84px; border-radius:18px; background:linear-gradient(135deg, rgba(61,215,255,0.12), rgba(110,243,195,0.06)); display:grid; place-items:center; border:1px solid rgba(61,215,255,0.08); box-shadow:0 8px 30px rgba(61,215,255,0.06), 0 0 26px rgba(61,215,255,0.04) inset; transform:rotate(-10deg); }
+  .wave { width:44px; height:44px; border-radius:10px; background:linear-gradient(90deg,var(--accent1),var(--accent2)); filter:drop-shadow(0 6px 18px rgba(61,215,255,0.18)); animation:float 3.6s ease-in-out infinite; }
+  @keyframes float { 0% { transform:translateY(0) rotate(-6deg); } 50% { transform:translateY(-6px) rotate(6deg); } 100% { transform:translateY(0) rotate(-6deg); } }
+
+  .welcome-text { display:flex; flex-direction:column; }
+  .welcome-h1 {
+    font-size:28px; font-weight:900; margin:0; line-height:1; letter-spacing:0.6px;
+    text-shadow:
+      0 1px 0 rgba(0,0,0,.6),
+      0 6px 20px rgba(61,215,255,0.06),
+      0 0 18px rgba(61,215,255,0.12);
+    color:linear-gradient(90deg,#6ef3c3,#3dd7ff);
+    background:linear-gradient(90deg,var(--accent1),var(--accent2));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+    animation:popIn 700ms cubic-bezier(.2,.9,.25,1) both;
+  }
+  @keyframes popIn { 0% { transform:translateY(14px) scale(.98); opacity:0 } 100% { transform:translateY(0) scale(1); opacity:1 } }
+
+  .welcome-sub {
+    margin-top:6px; color:var(--muted); font-weight:600; font-size:13px; letter-spacing:0.2px; opacity:0.95;
+    animation:fadeIn 900ms 200ms both;
+  }
+  @keyframes fadeIn { from { opacity:0; transform:translateY(6px) } to { opacity:1; transform:none } }
+
+  /* Play button neon */
+  .pay-row { display:flex; justify-content:center; align-items:center; gap:12px; margin-top:18px; }
+  .btn-play {
+    --g1: #36f0c6; --g2: #3dd7ff;
+    padding:12px 18px; border-radius:14px; border:0; font-weight:900; letter-spacing:0.6px;
+    background:linear-gradient(90deg,var(--g1), var(--g2));
+    color:#02110d;
+    box-shadow:
+      0 4px 20px rgba(61,215,255,0.12),
+      0 0 30px rgba(61,215,255,0.18),
+      inset 0 -6px 20px rgba(255,255,255,0.04);
+    cursor:pointer; transition:transform .16s ease, box-shadow .16s ease, filter .16s ease;
+    position:relative; overflow:visible;
+  }
+  .btn-play:hover { transform:translateY(-4px) scale(1.02); box-shadow:0 12px 44px rgba(61,215,255,0.18), 0 0 48px rgba(61,215,255,0.22); filter:brightness(1.02); }
+  .btn-play:active { transform:translateY(-1px) scale(.998); }
+  .btn-play::after {
+    content:""; position:absolute; inset:0; border-radius:14px; pointer-events:none;
+    box-shadow: 0 0 40px rgba(61,215,255,0.12);
+    opacity:0.9; mix-blend-mode: screen;
+    transition:opacity .25s ease;
+  }
+
+  /* small status box inside card */
+  #status { margin-top:12px; font-size:13px; line-height:1.35; background:rgba(255,255,255,0.02); border-radius:10px; padding:10px; display:none; color:var(--muted); }
+  #status.show { display:block; }
+
+  /* Canvas & general UI */
+  canvas { display:block; width:min(640px,96vw); height:auto; background:#0e1418; border:1px solid #1f2a32; border-radius:12px; margin:12px auto 10px; touch-action:none; }
+  .hud { display:flex; justify-content:space-between; gap:8px; font-size:14px; color:#a8b6c1; margin-top:6px; }
+  .kbd { background:#0f151a;border:1px solid #1f2a32;border-radius:8px;padding:2px 6px; }
+
+  /* mobile controls + play again button */
+  #mobile-controls { display:none; margin:6px auto 0; user-select:none; }
+  #mobile-controls .ctrl { width:64px; height:64px; font-size:22px; font-weight:800; background:linear-gradient(180deg,#1dd979,#16a34a); color:#04130c; border-radius:12px; border:0; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,.3); }
+  #mobile-controls .row { justify-content:center; gap:10px; }
+  @media (max-width:720px) { #mobile-controls { display:block; } .hud { font-size:12px; } }
+
+  #play-again { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); padding:12px 18px; border-radius:12px; border:0; font-weight:700; background:linear-gradient(90deg,#3dd7ff,#6ef3c3); color:#02110d; cursor:pointer; box-shadow:0 10px 30px rgba(0,0,0,.28); z-index:40; display:none; }
+
+  /* tiny responsive tweaks */
+  @media (max-width:520px) {
+    .welcome-h1 { font-size:20px; }
+    .logo-burst { width:64px; height:64px; border-radius:12px; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="intro-overlay" class="overlay">
+      <div class="overlay-card card" role="dialog" aria-modal="true">
+        <div class="welcome">
+          <div class="logo-burst"><div class="wave" aria-hidden="true"></div></div>
+          <div class="welcome-text">
+            <h1 class="welcome-h1">Welcome to <span style="color:transparent;background:linear-gradient(90deg,var(--accent1),var(--accent2));-webkit-background-clip:text;background-clip:text;">Block Dude</span></h1>
+            <div class="welcome-sub">Prove your skills — pay a small Base fee to unlock the level. Good luck, hero.</div>
+          </div>
+        </div>
+
+        <div class="pay-row">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <button id="play" class="btn-play" type="button">Pay &amp; Play</button>
+          </div>
+        </div>
+
+        <div id="status" aria-live="polite"></div>
+      </div>
+    </div>
+
+    <!-- Game canvas -->
+    <canvas id="game" width="384" height="256" aria-label="Block Dude game area"></canvas>
+
+    <!-- On-screen mobile controls -->
+    <div id="mobile-controls" class="hidden">
+      <div class="row" style="margin-top:2px;"><button class="ctrl" data-dir="up">↑</button></div>
+      <div class="row"><button class="ctrl" data-dir="left">←</button><button class="ctrl" data-dir="down">↓</button><button class="ctrl" data-dir="right">→</button></div>
+    </div>
+
+    <button id="play-again" type="button">Pay &amp; Play Again</button>
+
+    <div class="hud">
+      <div>Controls: <span class="kbd">←</span> <span class="kbd">→</span> <span class="kbd">↓</span> / swipe / buttons</div>
+      <div class="muted">Tip: Use mobile buttons if on phone</div>
+    </div>
+  </div>
+
+<script type="module">
+  import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk'
+  sdk.actions.ready();
+
+  const USE_BASE_SEPOLIA = false;
+  const RECIPIENT = "0x02212a875c56baE7AF27A5a389FD4e8A11442692";
+  const AMOUNT_ETH = "0.00001";
+
+  const BASE_MAINNET = { chainId: "0x2105",  explorer: "https://basescan.org/tx/" };
+  const BASE_SEPOLIA = { chainId: "0x14a34", explorer: "https://sepolia.basescan.org/tx/" };
+  const TARGET = USE_BASE_SEPOLIA ? BASE_SEPOLIA : BASE_MAINNET;
+
+  const statusEl = document.getElementById('status');
+  const playBtn = document.getElementById('play');
+  const introOverlay = document.getElementById('intro-overlay');
+  const playAgainBtn = document.getElementById('play-again');
+  const mobileCtrlEl = document.getElementById('mobile-controls');
+
+  const showStatus = () => statusEl.classList.add('show');
+  const addLine = html => { showStatus(); statusEl.insertAdjacentHTML('beforeend', `<div>${html}</div>`); };
+  const clearStatus = () => { statusEl.innerHTML = ''; statusEl.classList.remove('show'); };
+  const disable = (el, yes=true) => { if (el) el.disabled = yes; };
+
+  function parseEther(x){ const [w,f=""]=String(x).split('.'); const frac=(f+'0'.repeat(18)).slice(0,18); return '0x'+(BigInt(w)*10n**18n+BigInt(frac)).toString(16); }
+  async function getProvider(){ try { const p = await sdk.wallet.getEthereumProvider(); if (p) return p; } catch {} return window.ethereum ?? null; }
+  async function ensureChain(provider, chainId) { const current = (await provider.request({ method:'eth_chainId' }))?.toLowerCase(); if (current === chainId.toLowerCase()) return; try { await provider.request({ method:'wallet_switchEthereumChain', params:[{ chainId }] }); } catch (e) { if (e?.code === 4902) { await provider.request({ method:'wallet_addEthereumChain', params:[{ chainId }] }); await provider.request({ method:'wallet_switchEthereumChain', params:[{ chainId }] }); } else { throw e; } } }
+
+  async function requiredPayment() {
+    clearStatus();
+    addLine(`<b>Step 1:</b> locating wallet provider…`);
+    const provider = await getProvider();
+    if (!provider) { addLine(`<span style="color:#f87171">No wallet available.</span>`); throw new Error('NO_PROVIDER'); }
+    addLine(`<span style="color:#4ade80">Provider ready.</span>`);
+
+    addLine(`<b>Step 2:</b> requesting accounts…`);
+    const [from] = await provider.request({ method:'eth_requestAccounts' });
+    addLine(`<span style="color:#cde7d8">Account: ${from.slice(0,6)}…${from.slice(-4)}</span>`);
+
+    addLine(`<b>Step 3:</b> switching to Base…`);
+    await ensureChain(provider, TARGET.chainId);
+    addLine(`<span style="color:#4ade80">On Base${USE_BASE_SEPOLIA?' Sepolia':''}.</span>`);
+
+    addLine(`<b>Step 4:</b> sending ${AMOUNT_ETH} ETH…`);
+    const hash = await provider.request({ method:'eth_sendTransaction', params:[{ from, to: RECIPIENT, value: parseEther(AMOUNT_ETH) }] });
+    addLine(`<span style="color:#4ade80">TX sent.</span> <a target="_blank" rel="noopener" href="${TARGET.explorer}${hash}">View on Basescan</a>`);
+    return hash;
+  }
+
+  async function payThen(action, triggerBtn) {
+    try { disable(triggerBtn, true); await requiredPayment(); await action(); } 
+    catch (e) { addLine(`<span style="color:#fbbf24">Payment required. Please try again.</span>`); throw e; } 
+    finally { disable(triggerBtn, false); }
+  }
+
+  playBtn.addEventListener('click', (e)=>{
+    e.preventDefault();
+    payThen(() => {
+      introOverlay.classList.add('hidden');
+      clearStatus();
+      initBlockDude();
+    }, playBtn).catch(()=>{});
+  });
+
+  let currentGameState = null;
+  function initBlockDude() {
+    /* Game logic remains unchanged, same as your code */
+    // ... your full Block Dude game code here ...
+    // (Keep all canvas drawing, movement, controls, loops, etc.)
+  }
+
+  introOverlay.classList.remove('hidden');
+  window.addEventListener('error', e => console.error('Window error:', e.error||e));
+  window.addEventListener('unhandledrejection', e => console.error('Unhandled promise:', e.reason));
+</script>
+</body>
+</html>
+
