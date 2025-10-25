@@ -1,0 +1,18 @@
+{
+  "accountAssociation": {
+    "header": "eyJmaWQiOjEwODQzNTcsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHgwN2JEMTU1RjYxN0RhRTUwZTRDNTQzZTc2QjBkRTcxRWEyMTQyOWUxIn0",
+    "payload": "eyJkb21haW4iOiJ0ZXRyaXMtZmFyY2FzdGVyLnZlcmNlbC5hcHAifQ",
+    "signature": "p1gF5rYrxy9vXWCtC71YmhwOhAa2QcHdmmg+vqrjk0QYT1Jnvlo3ewn6EeqId5XRdK01UbZwMlCDKchkx2+/Uxw="
+  },
+  "miniapp": {
+    "version": "1",
+    "name": "TETRIS GAME 🎮",
+    "iconUrl": "https://raw.githubusercontent.com/enchanted-assets/public/main/icons/tetris-icon.png",
+    "homeUrl": "https://game-farcaster-idmoas-projects.vercel.app/",
+    "imageUrl": "https://raw.githubusercontent.com/enchanted-assets/public/main/images/tetris-cover.png",
+    "buttonTitle": "Play Now",
+    "splashImageUrl": "https://raw.githubusercontent.com/enchanted-assets/public/main/images/tetris-splash.png",
+    "splashBackgroundColor": "#000000",
+    "description": "Play the classic Tetris directly inside Farcaster — rotate, drop, and clear lines to win!"
+  }
+}
