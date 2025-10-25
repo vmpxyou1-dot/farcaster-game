@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Tetris – Farcaster Mini App (TX Required + Mobile)</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; font-family: system-ui,-apple-system,Segoe UI,Roboto; background:#0c1014; color:#e7ecf0; display:grid; place-items:center; min-height:100dvh; }
+  .wrap { width:min(520px,96vw); position:relative; padding:12px; }
+  .card { background:#131921; border:1px solid #1e293b; border-radius:14px; padding:16px; box-shadow:0 10px 30px rgba(0,0,0,.4); }
+  .row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .title { font-weight:800; font-size:20px; margin:0 0 8px; color:#e7ecf0; }
+  .muted { color:#94a3b8; font-size:14px; line-height:1.35; }
+  button { appearance:none; border:0; background:#22c55e; color:#0f172a; font-weight:700; padding:10px 16px; border-radius:12px; cursor:pointer; transition:.2s; }
+  button:hover { background:#16a34a; }
+  button:disabled { opacity:.6; cursor:not-allowed; }
+  .overlay { position:fixed; inset:0; display:grid; place-items:center; background:rgba(12,16,20,.85); backdrop-filter:blur(3px); padding:16px; }
+  .hidden { display:none!important; }
+
+  canvas {
+    display:block;
+    width:min(480px,96vw); height:min(640px,96vw);
+    background:#0c1014; border:1px solid #1e293b; border-radius:12px; margin:12px auto 10px;
+    touch-action:none;
+  }
+
+  .hud { display:flex; justify-content:space-between; gap:8px; font-size:14px; color:#94a3b8; }
+  .kbd { background:#131921;border:1px solid #1e293b;border-radius:8px;padding:2px 6px; }
+
+  #play-again {
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    padding:12px 18px; border-radius:12px; border:0; font-weight:700;
+    background:#22c55e; color:#0f172a; cursor:pointer; box-shadow:0 10px 30px rgba(0,0,0,.35);
+  }
+
+  #status { margin-top:10px; font-size:13px; line-height:1.35; background:#131921; border:1px solid #1e293b; border-radius:10px; padding:10px; }
+  #status b { color:#cde7d8; }
+  #status .ok { color:#4ade80; }
+  #status .warn { color:#fbbf24; }
+  #status .err { color:#f87171; }
+  #status a { color:#60a5fa; text-decoration:none; }
+
+  #mobile-controls { display:none; margin:6px auto 0; user-select:none; }
+  #mobile-controls .ctrl {
+    width:64px; height:64px; font-size:22px; font-weight:800;
+    background:#22c55e; color:#0f172a; border-radius:12px; border:0; cursor:pointer;
+    box-shadow:0 3px 8px rgba(0,0,0,.3);
+    transition:.2s;
+  }
+  #mobile-controls .ctrl:hover { background:#16a34a; }
+  #mobile-controls .row { justify-content:center; gap:10px; }
+  @media (max-width:720px) { #mobile-controls { display:block; } .hud { font-size:12px; } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div id="intro-overlay" class="overlay">
+      <div class="card" role="dialog" aria-modal="true">
+        <h1 class="title">Play Tetris</h1>
+        <p class="muted">A small Base transfer is required to start (mobile & desktop).</p>
+        <div class="row">
+          <div class="muted">Change recipient/amount in code.</div>
+          <button id="play" type="button">Pay & Play</button>
+        </div>
+        <div id="status" class="hidden"></div>
+      </div>
+    </div>
+
+    <canvas id="game" width="320" height="640" aria-label="Tetris game area"></canvas>
+
+    <!-- On-screen mobile controls -->
+    <div id="mobile-controls" class="hidden">
+      <div class="row" style="margin-top:2px;"><button class="ctrl" data-dir="rotate">⟳</button></div>
+      <div class="row">
+        <button class="ctrl" data-dir="left">←</button>
+        <button class="ctrl" data-dir="down">↓</button>
+        <button class="ctrl" data-dir="right">→</button>
+      </div>
+    </div>
+
+    <button id="play-again" class="hidden" type="button">Pay & Play Again</button>
+
+    <div class="hud">
+      <div>Score: <span id="score">0</span></div>
+      <div>Controls: <span class="kbd">↑</span> <span class="kbd">↓</span> <span class="kbd">←</span> <span class="kbd">→</span> / swipe</div>
+    </div>
+  </div>
+
+<script type="module">
+import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk'
+sdk.actions.ready();
+
+/* ===== CONFIG ===== */
+const USE_BASE_SEPOLIA = false;     
+const RECIPIENT = "0x02212a875c56baE7AF27A5a389FD4e8A11442692";
+const AMOUNT_ETH = "0.00001";
+
+const BASE_MAINNET = { chainId: "0x2105",  explorer: "https://basescan.org/tx/" };
+const BASE_SEPOLIA = { chainId: "0x14a34", explorer: "https://sepolia.basescan.org/tx/" };
+const TARGET = USE_BASE_SEPOLIA ? BASE_SEPOLIA : BASE_MAINNET;
+
+const statusEl = document.getElementById('status');
+const playBtn = document.getElementById('play');
+const playAgainBtn = document.getElementById('play-again');
+const mobileCtrlEl = document.getElementById('mobile-controls');
+
+const showStatus = () => statusEl.classList.remove('hidden');
+const addLine = html => { showStatus(); statusEl.insertAdjacentHTML('beforeend', `<div>${html}</div>`); };
+const clearStatus = () => statusEl.innerHTML = '';
+const disable = (el, yes=true) => { if (el) el.disabled = yes; };
+
+/* ===== Wallet helpers ===== */
+function parseEther(x){
+  const [w,f=""]=String(x).split('.'); const frac=(f+'0'.repeat(18)).slice(0,18);
+  return '0x'+(BigInt(w)*10n**18n+BigInt(frac)).toString(16);
+}
+async function getProvider(){
+  try { const p = await sdk.wallet.getEthereumProvider(); if (p) return p; } catch {}
+  return window.ethereum ?? null;
+}
+async function ensureChain(provider, chainId) {
+  const current = (await provider.request({ method:'eth_chainId' }))?.toLowerCase();
+  if (current === chainId.toLowerCase()) return;
+  try {
+    await provider.request({ method:'wallet_switchEthereumChain', params:[{ chainId }] });
+  } catch (e) {
+    if (e?.code === 4902) {
+      await provider.request({ method:'wallet_addEthereumChain', params:[{ chainId }] });
+      await provider.request({ method:'wallet_switchEthereumChain', params:[{ chainId }] });
+    } else { throw e; }
+  }
+}
+
+async function requiredPayment() {
+  clearStatus();
+  addLine(`<b>Step 1:</b> locating wallet provider…`);
+  const provider = await getProvider();
+  if (!provider) { addLine(`<span class="err">No wallet available.</span>`); throw new Error('NO_PROVIDER'); }
+  addLine(`<span class="ok">Provider ready.</span>`);
+
+  addLine(`<b>Step 2:</b> requesting accounts…`);
+  const [from] = await provider.request({ method:'eth_requestAccounts' });
+  addLine(`<span class="ok">Account: ${from.slice(0,6)}…${from.slice(-4)}</span>`);
+
+  addLine(`<b>Step 3:</b> switching to Base…`);
+  await ensureChain(provider, TARGET.chainId);
+  addLine(`<span class="ok">On Base${USE_BASE_SEPOLIA?' Sepolia':''}.</span>`);
+
+  addLine(`<b>Step 4:</b> sending ${AMOUNT_ETH} ETH to ${RECIPIENT.slice(0,6)}…${RECIPIENT.slice(-4)}…`);
+  const hash = await provider.request({
+    method:'eth_sendTransaction',
+    params:[{ from, to: RECIPIENT, value: parseEther(AMOUNT_ETH) }]
+  });
+  addLine(`<span class="ok">TX sent.</span> <a target="_blank" rel="noopener" href="${TARGET.explorer}${hash}">View on Basescan</a>`);
+  return hash;
+}
+
+async function payThen(action, triggerBtn) {
+  try { disable(triggerBtn,true); await requiredPayment(); await action(); }
+  catch(e){ console.warn('Payment blocked:', e); addLine(`<span class="warn">Payment required. Try again.</span>`); }
+  finally{ disable(triggerBtn,false); }
+}
+
+playBtn.addEventListener('click', (e)=>{
+  e.preventDefault();
+  payThen(() => { document.getElementById('intro-overlay')?.classList.add('hidden'); initTetris(); }, playBtn);
+});
+
+/* ===== TETRIS GAME ===== */
+let SNAKE_INTERVAL_ID = null;
+let TOUCH_LISTENER_REMOVER = null;
+
+function initTetris(){
+  const canvas = document.getElementById('game');
+  const context = canvas.getContext('2d');
+  const grid = 32;
+  const tetrominoSequence = [];
+  const playfield = Array.from({length:20+2},()=>Array(10).fill(0));
+  const colors = { 'I':'#0ff','O':'#facc15','T':'#a78bfa','S':'#22c55e','Z':'#ef4444','J':'#3b82f6','L':'#f97316' };
+  const tetrominos = {
+    'I': [[0,0,0,0],[1,1,1,1],[0,0,0,0],[0,0,0,0]],
+    'J': [[1,0,0],[1,1,1],[0,0,0]],
+    'L': [[0,0,1],[1,1,1],[0,0,0]],
+    'O': [[1,1],[1,1]],
+    'S': [[0,1,1],[1,1,0],[0,0,0]],
+    'Z': [[1,1,0],[0,1,1],[0,0,0]],
+    'T': [[0,1,0],[1,1,1],[0,0,0]]
+  };
+  let count = 0, tetromino = null, rAF = null, gameOver = false;
+  let score = 0;
+  document.getElementById('score').textContent = score;
+
+  function getRandomInt(min,max){return Math.floor(Math.random()*(max-min+1))+min;}
+  function generateSequence(){const sequence=['I','J','L','O','S','T','Z'];while(sequence.length){tetrominoSequence.push(sequence.splice(getRandomInt(0,sequence.length-1),1)[0]);}}
+  function getNextTetromino(){
+    if(!tetrominoSequence.length) generateSequence();
+    const name = tetrominoSequence.pop();
+    const matrix = tetrominos[name];
+    const col = playfield[0].length/2-Math.ceil(matrix[0].length/2);
+    const row = name==='I'?-1:-2;
+    return {name,matrix,row,col};
+  }
+  function rotate(matrix){const N=matrix.length-1; return matrix.map((row,i)=>row.map((val,j)=>matrix[N-j][i]));}
+  function isValidMove(matrix,cellRow,cellCol){for(let row=0;row<matrix.length;row++){for(let col=0;col<matrix[row].length;col++){if(matrix[row][col]&&(cellCol+col<0||cellCol+col>=playfield[0].length||cellRow+row>=playfield.length||playfield[cellRow+row][cellCol+col])) return false;}} return true;}
+  function placeTetromino(){for(let row=0;row<tetromino.matrix.length;row++){for(let col=0;col<tetromino.matrix[row].length;col++){if(tetromino.matrix[row][col]){if(tetromino.row+row<0) return showGameOver(); playfield[tetromino.row+row][tetromino.col+col]=tetromino.name;}}}for(let row=playfield.length-1;row>=0;){if(playfield[row].every(cell=>!!cell)){for(let r=row;r>=0;r--){for(let c=0;c<playfield[r].length;c++){playfield[r][c]=playfield[r-1]?.[c]||0;}}}else row--;} tetromino=getNextTetromino();}
+  function showGameOver(){cancelAnimationFrame(rAF); gameOver=true; context.fillStyle='rgba(0,0,0,.75)'; context.fillRect(0,canvas.height/2-30,canvas.width,60); context.fillStyle='white'; context.font='36px monospace'; context.textAlign='center'; context.textBaseline='middle'; context.fillText('GAME OVER!',canvas.width/2,canvas.height/2); playAgainBtn.classList.remove('hidden'); playAgainBtn.addEventListener('click', async(e)=>{e.preventDefault(); await payThen(()=>{playAgainBtn.classList.add('hidden'); initTetris();}, playAgainBtn);},{once:true});}
+
+  tetromino = getNextTetromino();
+
+  function loop(){
+    rAF = requestAnimationFrame(loop);
+    context.clearRect(0,0,canvas.width,canvas.height);
+
+    for(let row=0;row<20;row++){for(let col=0;col<10;col++){if(playfield[row][col]){context.fillStyle=colors[playfield[row][col]];context.shadowColor=colors[playfield[row][col]];context.shadowBlur=6;context.fillRect(col*grid,row*grid,grid-1,grid-1);context.shadowBlur=0;}}}
+
+    if(tetromino){
+      if(++count>35){tetromino.row++;count=0;if(!isValidMove(tetromino.matrix,tetromino.row,tetromino.col)){tetromino.row--;placeTetromino();score+=10;document.getElementById('score').textContent=score;}}
+      context.fillStyle=colors[tetromino.name];
+      context.shadowColor=colors[tetromino.name]; context.shadowBlur=6;
+      for(let row=0;row<tetromino.matrix.length;row++){for(let col=0;col<tetromino.matrix[row].length;col++){if(tetromino.matrix[row][col]) context.fillRect((tetromino.col+col)*grid,(tetromino.row+row)*grid,grid-1,grid-1);}}
+      context.shadowBlur=0;
+    }
+  }
+
+  document.addEventListener('keydown', function(e){
+    if(gameOver) return;
+    if(e.which===37||e.which===39){const col=e.which===37?tetromino.col-1:tetromino.col+1;if(isValidMove(tetromino.matrix,tetromino.row,col)) tetromino.col=col;}
+    if(e.which===38){const matrix=rotate(tetromino.matrix);if(isValidMove(matrix,tetromino.row,tetromino.col)) tetromino.matrix=matrix;}
+    if(e.which===40){const row=tetromino.row+1;if(!isValidMove(tetromino.matrix,row,tetromino.col)){tetromino.row=row-1;placeTetromino();score+=10;document.getElementById('score').textContent=score; return;} tetromino.row=row;}
+  });
+
+  // mobile buttons
+  if(mobileCtrlEl){mobileCtrlEl.classList.remove('hidden'); mobileCtrlEl.querySelectorAll('button.ctrl').forEach(btn=>{btn.addEventListener('click',()=>{if(gameOver)return;const dir=btn.dataset.dir;if(dir==='left'){if(isValidMove(tetromino.matrix,tetromino.row,tetromino.col-1)) tetromino.col--;}else if(dir==='right'){if(isValidMove(tetromino.matrix,tetromino.row,tetromino.col+1)) tetromino.col++;}else if(dir==='down'){const row=tetromino.row+1;if(!isValidMove(tetromino.matrix,row,tetromino.col)){tetromino.row=row-1;placeTetromino();score+=10;document.getElementById('score').textContent=score; return;} tetromino.row=row;}else if(dir==='rotate'){const matrix=rotate(tetromino.matrix);if(isValidMove(matrix,tetromino.row,tetromino.col)) tetromino.matrix=matrix;}});});}
+
+  rAF
