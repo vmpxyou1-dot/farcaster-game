@@ -3,235 +3,128 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>🎳 Bowling Pro — Farcaster Mini App</title>
+<title>🎳 Bowling Pro — Free Mini App</title>
 <style>
   :root { color-scheme: dark; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: linear-gradient(135deg, #0a0e13 0%, #1a1f2e 100%);
+    background: #000; /* black while splash shows */
     color: #e7ecf0;
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     min-height: 100dvh;
-    padding: 20px;
   }
-  .wrap { width: min(900px, 96vw); position: relative; }
-  .card { background: #12171b; border: 1px solid #1f2a32; border-radius: 14px; padding: 20px; box-shadow: 0 10px 30px rgba(0,0,0,.35); }
-  .overlay { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(8,11,14,.85); backdrop-filter: blur(4px); padding: 16px; z-index: 100; }
+
+  .wrap { width: min(900px, 96vw); margin: 0 auto; position: relative; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+
+  /* ---------- Splash (auto hides with timeout + onload) ---------- */
+  #splash {
+    position: fixed; inset: 0;
+    display: grid; place-items: center;
+    background: #000;
+    z-index: 9999;
+  }
+  .splash-inner {
+    display: grid; place-items: center; gap: 16px;
+    text-align: center;
+  }
+  .splash-logo {
+    width: min(60vw, 340px); height: auto;
+    border-radius: 16px; overflow: hidden;
+    background: radial-gradient(60% 60% at 25% 25%, #1f2937, #0b1220 60%, #000 100%);
+    display: grid; place-items: center;
+    aspect-ratio: 16/9;
+  }
+  .splash-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .splash-title { font-weight: 900; font-size: 18px; color: #9aa7b1; }
+
+  /* ---------- Overlay (centered title + button) ---------- */
+  .overlay {
+    position: fixed; inset: 0; display: grid; place-items: center;
+    background: rgba(8,11,14,.85); backdrop-filter: blur(4px); padding: 16px; z-index: 100;
+  }
   .hidden { display: none !important; }
-  
-  h1 {
-    font-size: 28px;
-    font-weight: 900;
-    margin-bottom: 12px;
-    text-shadow: 0 2px 10px rgba(56,189,248,0.5);
+  .card {
+    width: min(560px, 92vw);
+    background: #12171b; border: 1px solid #1f2a32; border-radius: 16px;
+    padding: 28px 22px; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    text-align: center;
   }
-  
-  .muted {
-    color: #9aa7b1;
-    font-size: 14px;
-    line-height: 1.4;
-    margin-bottom: 16px;
-  }
-  
+  h1 { font-size: 28px; font-weight: 900; margin-bottom: 12px; text-shadow: 0 2px 10px rgba(56,189,248,0.5); }
+  .muted { color: #9aa7b1; font-size: 14px; line-height: 1.45; margin-bottom: 16px; }
   .btn-primary {
-    padding: 14px 28px;
-    background: linear-gradient(135deg, #ff8c42, #ff6b1a);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-weight: 900;
-    font-size: 16px;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(255,107,26,0.4);
-    transition: all 0.2s;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    padding: 14px 28px; background: linear-gradient(135deg, #ff8c42, #ff6b1a);
+    color: #fff; border: none; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255,107,26,0.4); transition: all .2s; text-transform: uppercase; letter-spacing: .5px;
   }
-  
-  .btn-primary:hover:not(:disabled) {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(255,107,26,0.5);
-  }
-  
-  .btn-primary:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-  
-  .btn-secondary {
-    padding: 12px 24px;
-    background: linear-gradient(135deg, #38bdf8, #34d399);
-    color: #0a1929;
-    border: none;
-    border-radius: 10px;
-    font-weight: 900;
-    font-size: 14px;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(56,189,248,0.3);
-    transition: all 0.2s;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-  
-  .btn-reset {
-    background: linear-gradient(135deg, #f43f5e, #f59e0b);
-  }
-  
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,107,26,0.5); }
+
+  /* ---------- Game Area ---------- */
   #canvas {
-    background: #0d1117;
-    border: 3px solid #1f2937;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    max-width: 100%;
-    display: block;
-    margin: 20px auto;
-    touch-action: none;
+    background: #0d1117; border: 3px solid #1f2937; border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5); max-width: 100%; display: block; margin: 20px auto; touch-action: none;
   }
-  
-  #controls {
-    width: 100%;
-    margin-top: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .control-row {
-    background: rgba(15,23,42,0.8);
-    border: 2px solid #1e293b;
-    border-radius: 12px;
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 15px;
-    flex-wrap: wrap;
-  }
-  
-  .control-group {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-  
-  label {
-    font-weight: 700;
-    font-size: 14px;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  
-  input[type="range"] {
-    width: 200px;
-    height: 8px;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #ef4444 0%, #fbbf24 50%, #ef4444 100%);
-    outline: none;
-    -webkit-appearance: none;
-  }
-  
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: white;
-    cursor: pointer;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  }
-  
-  .score-display {
-    font-size: 18px;
-    font-weight: 700;
-    color: #fbbf24;
-  }
-  
-  .power-bar {
-    width: 250px;
-    height: 14px;
-    background: #1e293b;
-    border-radius: 20px;
-    overflow: hidden;
-    border: 2px solid #334155;
-  }
-  
-  .power-fill {
-    height: 100%;
-    width: 0%;
-    background: linear-gradient(90deg, #22c55e, #fbbf24, #ef4444);
-    transition: width 0.05s linear;
-  }
-  
-  .info {
-    color: #94a3b8;
-    font-size: 13px;
-  }
-  
-  #status {
-    margin-top: 15px;
-    font-size: 13px;
-    line-height: 1.5;
-    background: #0f151a;
-    border: 1px solid #1f2a32;
-    border-radius: 10px;
-    padding: 12px;
-  }
-  
-  #status b { color: #cde7d8; }
-  #status .ok { color: #4ade80; }
-  #status .warn { color: #fbbf24; }
-  #status .err { color: #f87171; }
-  #status a { color: #86c6ff; text-decoration: none; }
-  
+
+  #controls { width: 100%; margin-top: 15px; display: flex; flex-direction: column; gap: 15px; }
+  .control-row { background: rgba(15,23,42,0.8); border: 2px solid #1e293b; border-radius: 12px; padding: 15px; display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap; }
+  .control-group { display: flex; align-items: center; gap: 10px; }
+  label { font-weight: 700; font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; }
+  input[type="range"] { width: 200px; height: 8px; border-radius: 10px; background: linear-gradient(90deg, #ef4444 0%, #fbbf24 50%, #ef4444 100%); outline: none; -webkit-appearance: none; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: white; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+  .score-display { font-size: 18px; font-weight: 700; color: #fbbf24; }
+
+  .power-bar { width: 250px; height: 14px; background: #1e293b; border-radius: 20px; overflow: hidden; border: 2px solid #334155; }
+  .power-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #fbbf24, #ef4444); transition: width .05s linear; }
+  .info { color: #94a3b8; font-size: 13px; }
+
+  #status { margin-top: 15px; font-size: 13px; line-height: 1.5; background: #0f151a; border: 1px solid #1f2a32; border-radius: 10px; padding: 12px; }
+  #status b { color: #cde7d8; } #status .ok { color: #4ade80; } #status .warn { color: #fbbf24; } #status .err { color: #f87171; } #status a { color: #86c6ff; text-decoration: none; }
+
   #play-again {
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    padding: 16px 32px;
-    background: linear-gradient(135deg, #ff8c42, #ff6b1a);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-weight: 900;
-    font-size: 18px;
-    cursor: pointer;
-    box-shadow: 0 10px 40px rgba(255,107,26,0.5);
-    z-index: 50;
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    padding: 16px 32px; background: linear-gradient(135deg, #ff8c42, #ff6b1a); color: #fff; border: none;
+    border-radius: 12px; font-weight: 900; font-size: 18px; cursor: pointer; box-shadow: 0 10px 40px rgba(255,107,26,0.5); z-index: 50;
   }
-  
-  @keyframes bounce {
-    0%, 100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-  }
-  
-  @media (max-width: 720px) {
-    input[type="range"] { width: 150px; }
-    .power-bar { width: 180px; }
-  }
+
+  @keyframes bounce { 0%, 100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } }
+  @media (max-width: 720px) { input[type="range"] { width: 150px; } .power-bar { width: 180px; } }
 </style>
 </head>
 <body>
+  <!-- Splash with resilient image handling -->
+  <div id="splash">
+    <div class="splash-inner">
+      <div class="splash-logo" id="splashLogo">
+        <!-- Inline SVG fallback so you never see a broken img -->
+        <svg viewBox="0 0 600 338" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <defs>
+            <linearGradient id="g" x1="0" x2="1">
+              <stop offset="0" stop-color="#0ea5e9"/>
+              <stop offset="1" stop-color="#22c55e"/>
+            </linearGradient>
+          </defs>
+          <rect width="600" height="338" fill="#0b1220"/>
+          <circle cx="150" cy="170" r="70" fill="url(#g)"/>
+          <text x="260" y="190" font-size="42" font-weight="900" fill="#e7ecf0" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Bowling Pro</text>
+        </svg>
+      </div>
+      <div class="splash-title">Loading…</div>
+    </div>
+  </div>
+
   <div class="wrap">
-    <!-- Intro Overlay -->
-    <div id="intro-overlay" class="overlay">
+    <!-- Intro Overlay (centered title & Play Now) -->
+    <div id="intro-overlay" class="overlay hidden">
       <div class="card" role="dialog" aria-modal="true">
         <h1>🎳 Play Bowling Pro</h1>
-        <p class="muted">A small Base transfer is required to start playing (mobile & desktop supported).</p>
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap;">
-          <div class="muted" style="font-size: 12px;">Change recipient/amount in code if needed.</div>
-          <button id="play" class="btn-primary">💰 Pay & Play</button>
-        </div>
+        <p class="muted">Free to play — aim with the slider, hold to charge, release to throw.</p>
+        <button id="play" class="btn-primary">🕹️ Play Now</button>
         <div id="status" class="hidden"></div>
       </div>
     </div>
 
+    <!-- Game -->
     <canvas id="canvas" width="900" height="600"></canvas>
-    
+
     <div id="controls">
       <div class="control-row">
         <div class="control-group">
@@ -241,141 +134,57 @@
         </div>
         <div class="control-group">
           <label>⚡ Power:</label>
-          <div class="power-bar">
-            <div class="power-fill" id="powerBar"></div>
-          </div>
+          <div class="power-bar"><div class="power-fill" id="powerBar"></div></div>
           <span class="info" id="powerValue">0%</span>
         </div>
       </div>
-      
+
       <div class="control-row">
         <div class="control-group">
-          <button id="throwBtn" class="btn-secondary">🎳 HOLD & RELEASE</button>
-          <button id="resetBtn" class="btn-secondary btn-reset">🔄 RESET</button>
+          <button id="throwBtn" class="btn-primary" style="background:linear-gradient(135deg,#38bdf8,#34d399);color:#0a1929">🎳 HOLD & RELEASE</button>
+          <button id="resetBtn" class="btn-primary" style="background:linear-gradient(135deg,#f43f5e,#f59e0b)">🔄 RESET</button>
         </div>
         <div class="control-group">
-          <span class="info">Frame:</span>
-          <span class="score-display" id="frameDisplay">1/10</span>
-          <span class="info">Roll:</span>
-          <span class="score-display" id="rollDisplay">1/3</span>
-          <span class="info">Score:</span>
-          <span class="score-display" id="scoreDisplay">0</span>
-          <span class="info">Misses:</span>
-          <span class="score-display" id="missDisplay" style="color: #ef4444;">0/3</span>
-          <span class="info">Pins:</span>
-          <span class="score-display" id="pinsDisplay">10/10</span>
+          <span class="info">Frame:</span><span class="score-display" id="frameDisplay">1/10</span>
+          <span class="info">Roll:</span><span class="score-display" id="rollDisplay">1/3</span>
+          <span class="info">Score:</span><span class="score-display" id="scoreDisplay">0</span>
+          <span class="info">Misses:</span><span class="score-display" id="missDisplay" style="color:#ef4444;">0/3</span>
+          <span class="info">Pins:</span><span class="score-display" id="pinsDisplay">10/10</span>
         </div>
       </div>
     </div>
 
-    <button id="play-again" class="hidden">💰 Pay & Play Again</button>
+    <button id="play-again" class="hidden">▶️ Play Again</button>
   </div>
 
-<script type="module">
-import { sdk } from 'https://esm.sh/@farcaster/miniapp-sdk';
-sdk.actions.ready();
+<script>
+/* =================== Splash handling (never stuck) =================== */
+/* If you want to use a real image, set SPLASH_URL. If it fails, SVG stays. */
+const SPLASH_URL = ""; // e.g. "https://your-cdn.com/splash.png"
+(function mountSplash(){
+  const splash = document.getElementById('splash');
+  const logo = document.getElementById('splashLogo');
 
-/* ===== CONFIG ===== */
-const USE_BASE_SEPOLIA = false;
-const RECIPIENT = "0xc4EB7B433f9911a15c18729D8BE5e5fDa1187E1a";
-const AMOUNT_ETH = "0.00001";
-
-const BASE_MAINNET = { chainId: "0x2105",  explorer: "https://basescan.org/tx/" };
-const BASE_SEPOLIA = { chainId: "0x14a34", explorer: "https://sepolia.basescan.org/tx/" };
-const TARGET = USE_BASE_SEPOLIA ? BASE_SEPOLIA : BASE_MAINNET;
-
-/* ===== DOM ===== */
-const canvas = document.getElementById('canvas');
-const ctx = canvas.getContext('2d');
-const statusEl = document.getElementById('status');
-const playBtn = document.getElementById('play');
-const playAgainBtn = document.getElementById('play-again');
-const aimSlider = document.getElementById('aimSlider');
-const aimValue = document.getElementById('aimValue');
-const powerBar = document.getElementById('powerBar');
-const powerValue = document.getElementById('powerValue');
-const throwBtn = document.getElementById('throwBtn');
-const resetBtn = document.getElementById('resetBtn');
-const frameDisplay = document.getElementById('frameDisplay');
-const rollDisplay = document.getElementById('rollDisplay');
-const scoreDisplay = document.getElementById('scoreDisplay');
-const missDisplay = document.getElementById('missDisplay');
-const pinsDisplay = document.getElementById('pinsDisplay');
-
-const showStatus = () => statusEl.classList.remove('hidden');
-const addLine = html => { showStatus(); statusEl.insertAdjacentHTML('beforeend', `<div>${html}</div>`); };
-const clearStatus = () => statusEl.innerHTML = '';
-const disable = (el, yes=true) => { if (el) el.disabled = yes; };
-
-/* ===== Wallet Helpers ===== */
-function parseEther(x) {
-  const [w, f=""] = String(x).split('.');
-  const frac = (f + '0'.repeat(18)).slice(0, 18);
-  return '0x' + (BigInt(w) * 10n**18n + BigInt(frac)).toString(16);
-}
-
-async function getProvider() {
-  try {
-    const p = await sdk.wallet.getEthereumProvider();
-    if (p) return p;
-  } catch {}
-  return window.ethereum ?? null;
-}
-
-async function ensureChain(provider, chainId) {
-  const current = (await provider.request({ method: 'eth_chainId' }))?.toLowerCase();
-  if (current === chainId.toLowerCase()) return;
-  try {
-    await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId }] });
-  } catch (e) {
-    if (e?.code === 4902) {
-      await provider.request({ method: 'wallet_addEthereumChain', params: [{ chainId }] });
-      await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId }] });
-    } else { throw e; }
+  function hideSplash() {
+    splash.classList.add('hidden');
+    document.body.style.background = "linear-gradient(135deg, #0a0e13 0%, #1a1f2e 100%)";
+    document.getElementById('intro-overlay').classList.remove('hidden');
   }
-}
 
-async function requiredPayment() {
-  clearStatus();
-  addLine(`<b>Step 1:</b> Locating wallet provider…`);
-  const provider = await getProvider();
-  if (!provider) {
-    addLine(`<span class="err">No wallet available.</span> Open in Farcaster or enable a wallet.`);
-    throw new Error('NO_PROVIDER');
+  // hard timeout as safety
+  const safety = setTimeout(hideSplash, 1800);
+
+  if (SPLASH_URL) {
+    const img = new Image();
+    img.onload = () => { logo.innerHTML = ""; logo.appendChild(img); clearTimeout(safety); setTimeout(hideSplash, 200); };
+    img.onerror = () => { /* keep SVG */ clearTimeout(safety); setTimeout(hideSplash, 500); };
+    img.src = SPLASH_URL;
+    img.alt = "Splash";
+    img.style = "width:100%;height:100%;object-fit:cover;display:block;";
   }
-  addLine(`<span class="ok">Provider ready.</span>`);
+})();
 
-  addLine(`<b>Step 2:</b> Requesting accounts…`);
-  const [from] = await provider.request({ method: 'eth_requestAccounts' });
-  addLine(`<span class="ok">Account: ${from.slice(0,6)}…${from.slice(-4)}</span>`);
-
-  addLine(`<b>Step 3:</b> Switching to Base${USE_BASE_SEPOLIA?' Sepolia':''}…`);
-  await ensureChain(provider, TARGET.chainId);
-  addLine(`<span class="ok">On Base${USE_BASE_SEPOLIA?' Sepolia':''}.</span>`);
-
-  addLine(`<b>Step 4:</b> Sending ${AMOUNT_ETH} ETH to ${RECIPIENT.slice(0,6)}…${RECIPIENT.slice(-4)}…`);
-  const hash = await provider.request({
-    method: 'eth_sendTransaction',
-    params: [{ from, to: RECIPIENT, value: parseEther(AMOUNT_ETH) }]
-  });
-  addLine(`<span class="ok">TX sent.</span> <a target="_blank" rel="noopener" href="${TARGET.explorer}${hash}">View on Basescan</a>`);
-  return hash;
-}
-
-async function payThen(action, triggerBtn) {
-  try {
-    disable(triggerBtn, true);
-    await requiredPayment();
-    await action();
-  } catch (e) {
-    console.warn('Payment gate blocked action:', e);
-    addLine(`<span class="warn">Payment required. Please try again.</span>`);
-  } finally {
-    disable(triggerBtn, false);
-  }
-}
-
-/* ===== Game State ===== */
+/* =================== Game (free-to-play) =================== */
 let gameState = {
   pins: [],
   ball: null,
@@ -392,21 +201,31 @@ let gameState = {
   gameActive: false
 };
 
-const lane = {
-  x: 150,
-  y: 50,
-  width: 600,
-  height: 500,
-  foulLine: 50 + 500 - 80
-};
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const playBtn = document.getElementById('play');
+const playAgainBtn = document.getElementById('play-again');
+const aimSlider = document.getElementById('aimSlider');
+const aimValue = document.getElementById('aimValue');
+const powerBar = document.getElementById('powerBar');
+const powerValue = document.getElementById('powerValue');
+const throwBtn = document.getElementById('throwBtn');
+const resetBtn = document.getElementById('resetBtn');
+const frameDisplay = document.getElementById('frameDisplay');
+const rollDisplay = document.getElementById('rollDisplay');
+const scoreDisplay = document.getElementById('scoreDisplay');
+const missDisplay = document.getElementById('missDisplay');
+const pinsDisplay = document.getElementById('pinsDisplay');
 
-/* ===== Setup Pins ===== */
+const lane = { x: 150, y: 50, width: 600, height: 500, foulLine: 50 + 500 - 80 };
+
+/* ---- Pins ---- */
 function setupPins() {
   gameState.pins = [];
   const startX = canvas.width / 2;
   const startY = lane.y + 80;
   const spacing = 40;
-  
+
   let pinId = 0;
   for (let row = 0; row < 4; row++) {
     for (let col = 0; col <= row; col++) {
@@ -421,92 +240,91 @@ function setupPins() {
   }
 }
 
-/* ===== Draw Functions ===== */
+/* ---- Draw ---- */
 function drawLane() {
   const plankWidth = lane.width / 15;
   for (let i = 0; i < 15; i++) {
     ctx.fillStyle = i % 2 === 0 ? '#c9965f' : '#a67945';
     ctx.fillRect(lane.x + i * plankWidth, lane.y, plankWidth, lane.height);
   }
-  
+
   ctx.strokeStyle = 'rgba(255,255,255,0.1)';
   ctx.lineWidth = 2;
   ctx.beginPath();
   ctx.moveTo(canvas.width / 2, lane.y);
   ctx.lineTo(canvas.width / 2, lane.y + lane.height);
   ctx.stroke();
-  
+
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(lane.x, lane.foulLine, lane.width, 4);
-  
+
   ctx.fillStyle = 'rgba(100,80,60,0.3)';
   ctx.fillRect(lane.x, lane.foulLine, lane.width, lane.y + lane.height - lane.foulLine);
 }
 
 function drawPins() {
-  gameState.pins.forEach(pin => {
-    if (!pin.alive) return;
-    
+  for (const pin of gameState.pins) {
+    if (!pin.alive) continue;
+
     ctx.fillStyle = 'rgba(0,0,0,0.3)';
     ctx.beginPath();
     ctx.ellipse(pin.x + 4, pin.y + 8, 10, 4, 0, 0, Math.PI * 2);
     ctx.fill();
-    
+
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(pin.x, pin.y, pin.radius, 0, Math.PI * 2);
     ctx.fill();
-    
+
     ctx.strokeStyle = '#ef4444';
     ctx.lineWidth = 3;
     ctx.beginPath();
     ctx.arc(pin.x, pin.y - 2, pin.radius - 4, 0, Math.PI * 2);
     ctx.stroke();
-    
+
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
     ctx.beginPath();
     ctx.arc(pin.x - 4, pin.y - 4, 4, 0, Math.PI * 2);
     ctx.fill();
-  });
+  }
 }
 
 function drawBall() {
   if (!gameState.ball) return;
-  
   const b = gameState.ball;
-  
+
   ctx.fillStyle = 'rgba(0,0,0,0.4)';
   ctx.beginPath();
   ctx.ellipse(b.x + 6, b.y + 10, 12, 5, 0, 0, Math.PI * 2);
   ctx.fill();
-  
+
   const gradient = ctx.createRadialGradient(b.x - 8, b.y - 8, 5, b.x, b.y, b.radius);
   gradient.addColorStop(0, '#ff9a56');
   gradient.addColorStop(1, '#ff6b1a');
-  
+
   ctx.fillStyle = gradient;
   ctx.beginPath();
   ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
   ctx.fill();
-  
+
   ctx.fillStyle = '#1a1a1a';
   ctx.beginPath();
   ctx.arc(b.x - 4, b.y - 2, 3, 0, Math.PI * 2);
   ctx.arc(b.x + 4, b.y - 2, 3, 0, Math.PI * 2);
   ctx.arc(b.x, b.y + 5, 3, 0, Math.PI * 2);
   ctx.fill();
-  
+
   ctx.fillStyle = 'rgba(255,255,255,0.4)';
   ctx.beginPath();
   ctx.arc(b.x - 6, b.y - 6, 5, 0, Math.PI * 2);
   ctx.fill();
 }
 
-/* ===== Physics ===== */
+/* ---- Physics ---- */
 function spawnBall() {
   const startX = canvas.width / 2 + gameState.aim * 3;
   const startY = lane.foulLine + 30;
-  
+
   gameState.ball = {
     x: startX,
     y: startY,
@@ -515,27 +333,26 @@ function spawnBall() {
     radius: 14,
     returning: false
   };
-  
+
   gameState.rolling = true;
 }
 
 function updateBall() {
   if (!gameState.ball) return;
-  
   const b = gameState.ball;
-  
+
   b.vx += gameState.aim * 0.03;
   b.x += b.vx;
   b.y += b.vy;
-  
+
   b.vx *= 0.992;
   b.vy *= 0.996;
-  
+
   if (!b.returning && (b.y < lane.y + 60 || b.vy > -0.5)) {
     b.returning = true;
     b.vy = Math.abs(b.vy) || 3;
   }
-  
+
   if (b.returning) {
     if (b.vy < 2) b.vy = 2;
     if (b.y >= lane.foulLine + 30) {
@@ -544,145 +361,97 @@ function updateBall() {
       handleRollComplete();
     }
   }
-  
+
   checkPinCollisions();
 }
 
 function checkPinCollisions() {
   if (!gameState.ball) return;
-  
   const b = gameState.ball;
-  gameState.pins.forEach(pin => {
-    if (!pin.alive) return;
-    
+
+  for (const pin of gameState.pins) {
+    if (!pin.alive) continue;
+
     const dx = b.x - pin.x;
     const dy = b.y - pin.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
-    
+
     if (distance < b.radius + pin.radius) {
       pin.alive = false;
       gameState.score += 10;
-      
+
       const nx = dx / distance;
       const ny = dy / distance;
       const dot = b.vx * nx + b.vy * ny;
       b.vx -= 1.5 * dot * nx;
       b.vy -= 1.5 * dot * ny;
     }
-  });
-  
+  }
   updateDisplay();
 }
 
+/* ---- Rolls / Frames ---- */
 function handleRollComplete() {
   const pinsKnocked = 10 - gameState.pins.filter(p => p.alive).length;
-  
+
   if (gameState.roll === 1) {
-    if (pinsKnocked === 10) {
-      // Strike!
-      showMessage('STRIKE! ⚡', '#fbbf24');
-      gameState.missedFrames = 0; // Reset missed count on strike
-      nextFrame();
-    } else {
-      gameState.roll = 2;
-    }
+    if (pinsKnocked === 10) { showMessage('STRIKE! ⚡', '#fbbf24'); gameState.missedFrames = 0; nextFrame(); }
+    else { gameState.roll = 2; }
   } else if (gameState.roll === 2) {
-    if (pinsKnocked === 10) {
-      // Spare!
-      showMessage('SPARE! ✨', '#34d399');
-      gameState.missedFrames = 0; // Reset missed count on spare
-      nextFrame();
-    } else {
-      gameState.roll = 3;
-    }
-  } else if (gameState.roll === 3) {
-    // Check if all 3 rolls missed (no pins knocked down)
+    if (pinsKnocked === 10) { showMessage('SPARE! ✨', '#34d399'); gameState.missedFrames = 0; nextFrame(); }
+    else { gameState.roll = 3; }
+  } else {
     if (pinsKnocked === 0) {
       gameState.missedFrames++;
       showMessage('MISS! ❌ (' + gameState.missedFrames + '/3)', '#ef4444');
-      
-      // Check if lost (3 misses)
       if (gameState.missedFrames >= gameState.maxMissedFrames) {
-        setTimeout(() => {
-          showMessage('3 MISSES - GAME OVER! 💀', '#ef4444');
-          setTimeout(endGame, 1500);
-        }, 1000);
+        setTimeout(() => { showMessage('3 MISSES - GAME OVER! 💀', '#ef4444'); setTimeout(endGame, 1500); }, 1000);
         return;
       }
     } else {
-      gameState.missedFrames = 0; // Reset if any pins were knocked
+      gameState.missedFrames = 0;
     }
     nextFrame();
   }
-  
   updateDisplay();
 }
 
 function nextFrame() {
-  if (gameState.frame >= 10) {
-    endGame();
-    return;
-  }
-  
-  gameState.frame++;
-  gameState.roll = 1;
-  setTimeout(() => {
-    setupPins();
-    updateDisplay();
-  }, 1000);
+  if (gameState.frame >= 10) { endGame(); return; }
+  gameState.frame++; gameState.roll = 1;
+  setTimeout(() => { setupPins(); updateDisplay(); }, 800);
 }
 
 function endGame() {
   gameState.gameActive = false;
   throwBtn.disabled = true;
-  
-  ctx.fillStyle = 'rgba(0,0,0,0.7)';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  ctx.fillStyle = '#e7ecf0';
-  ctx.font = 'bold 48px system-ui';
-  ctx.textAlign = 'center';
+
+  ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#e7ecf0'; ctx.font = 'bold 48px system-ui'; ctx.textAlign = 'center';
   ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 60);
-  
-  ctx.font = 'bold 32px system-ui';
-  ctx.fillStyle = '#fbbf24';
+
+  ctx.font = 'bold 32px system-ui'; ctx.fillStyle = '#fbbf24';
   ctx.fillText('Final Score: ' + gameState.score, canvas.width / 2, canvas.height / 2 - 10);
-  
+
   if (gameState.missedFrames >= gameState.maxMissedFrames) {
-    ctx.font = 'bold 24px system-ui';
-    ctx.fillStyle = '#ef4444';
+    ctx.font = 'bold 24px system-ui'; ctx.fillStyle = '#ef4444';
     ctx.fillText('Lost: 3 Consecutive Misses', canvas.width / 2, canvas.height / 2 + 30);
   }
-  
-  ctx.font = '18px system-ui';
-  ctx.fillStyle = '#a8b6c1';
+
+  ctx.font = '18px system-ui'; ctx.fillStyle = '#a8b6c1';
   ctx.fillText('Click button below to continue', canvas.width / 2, canvas.height / 2 + 65);
-  
-  // Show play again button with payment flow
+
   playAgainBtn.classList.remove('hidden');
-  playAgainBtn.onclick = async (e) => {
-    e.preventDefault();
-    await payThen(async () => {
-      // Hide overlay and button
-      playAgainBtn.classList.add('hidden');
-      
-      // Reset game state
-      gameState.score = 0;
-      gameState.frame = 1;
-      gameState.roll = 1;
-      gameState.missedFrames = 0;
-      gameState.ball = null;
-      gameState.rolling = false;
-      gameState.gameActive = true;
-      throwBtn.disabled = false;
-      throwBtn.textContent = '🎳 HOLD & RELEASE';
-      
-      setupPins();
-      updateDisplay();
-    }, playAgainBtn);
+  playAgainBtn.onclick = () => {
+    playAgainBtn.classList.add('hidden');
+    gameState.score = 0; gameState.frame = 1; gameState.roll = 1; gameState.missedFrames = 0;
+    gameState.ball = null; gameState.rolling = false; gameState.gameActive = true;
+    throwBtn.disabled = false; throwBtn.textContent = '🎳 HOLD & RELEASE';
+    setupPins(); updateDisplay();
   };
 }
 
+/* ---- FX ---- */
 function showMessage(text, color) {
   const msgDiv = document.createElement('div');
   msgDiv.textContent = text;
@@ -692,34 +461,28 @@ function showMessage(text, color) {
     pointer-events: none; z-index: 1000; animation: bounce 1s ease-out;
   `;
   document.body.appendChild(msgDiv);
-  setTimeout(() => msgDiv.remove(), 1500);
+  setTimeout(() => msgDiv.remove(), 1200);
 }
 
-/* ===== Power Charging ===== */
+/* ---- Power ---- */
 let chargeInterval;
 function startCharging() {
   if (gameState.rolling || !gameState.gameActive) return;
-  gameState.charging = true;
-  gameState.power = 0;
+  gameState.charging = true; gameState.power = 0;
   throwBtn.textContent = '🎳 RELEASE NOW!';
-  
   chargeInterval = setInterval(() => {
-    gameState.power += 0.02;
-    if (gameState.power > 1) gameState.power = 1;
+    gameState.power += 0.02; if (gameState.power > 1) gameState.power = 1;
     powerBar.style.width = (gameState.power * 100) + '%';
     powerValue.textContent = Math.round(gameState.power * 100) + '%';
   }, 20);
 }
-
 function stopCharging() {
   if (!gameState.charging) return;
-  gameState.charging = false;
-  clearInterval(chargeInterval);
-  throwBtn.textContent = '🎳 HOLD & RELEASE';
-  spawnBall();
+  gameState.charging = false; clearInterval(chargeInterval);
+  throwBtn.textContent = '🎳 HOLD & RELEASE'; spawnBall();
 }
 
-/* ===== Update Display ===== */
+/* ---- Display ---- */
 function updateDisplay() {
   const pinsStanding = gameState.pins.filter(p => p.alive).length;
   scoreDisplay.textContent = gameState.score;
@@ -727,81 +490,39 @@ function updateDisplay() {
   rollDisplay.textContent = gameState.roll + '/3';
   missDisplay.textContent = gameState.missedFrames + '/3';
   pinsDisplay.textContent = pinsStanding + '/10';
-  
-  // Change miss color based on count
-  if (gameState.missedFrames === 0) {
-    missDisplay.style.color = '#34d399';
-  } else if (gameState.missedFrames === 1) {
-    missDisplay.style.color = '#fbbf24';
-  } else if (gameState.missedFrames === 2) {
-    missDisplay.style.color = '#fb923c';
-  } else {
-    missDisplay.style.color = '#ef4444';
-  }
+  if (gameState.missedFrames === 0) missDisplay.style.color = '#34d399';
+  else if (gameState.missedFrames === 1) missDisplay.style.color = '#fbbf24';
+  else if (gameState.missedFrames === 2) missDisplay.style.color = '#fb923c';
+  else missDisplay.style.color = '#ef4444';
 }
 
-/* ===== Game Loop ===== */
+/* ---- Loop ---- */
 function gameLoop() {
-  ctx.fillStyle = '#0d1117';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  
-  drawLane();
-  drawPins();
-  drawBall();
-  
-  if (gameState.rolling) {
-    updateBall();
-  }
-  
+  ctx.fillStyle = '#0d1117'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawLane(); drawPins(); drawBall();
+  if (gameState.rolling) updateBall();
   requestAnimationFrame(gameLoop);
 }
 
-/* ===== Event Listeners ===== */
-aimSlider.addEventListener('input', (e) => {
-  gameState.aim = parseInt(e.target.value);
-  aimValue.textContent = gameState.aim + '°';
-});
-
+/* ---- Controls ---- */
+aimSlider.addEventListener('input', (e) => { gameState.aim = parseInt(e.target.value, 10); aimValue.textContent = gameState.aim + '°'; });
 throwBtn.addEventListener('mousedown', startCharging);
-throwBtn.addEventListener('touchstart', startCharging);
+throwBtn.addEventListener('touchstart', startCharging, {passive:true});
 window.addEventListener('mouseup', stopCharging);
 window.addEventListener('touchend', stopCharging);
 
 resetBtn.addEventListener('click', () => {
-  gameState.score = 0;
-  gameState.frame = 1;
-  gameState.roll = 1;
-  gameState.missedFrames = 0;
-  gameState.ball = null;
-  gameState.rolling = false;
-  gameState.charging = false;
-  gameState.power = 0;
-  gameState.aim = 0;
-  aimSlider.value = 0;
-  throwBtn.disabled = false;
-  throwBtn.textContent = '🎳 HOLD & RELEASE';
-  setupPins();
-  updateDisplay();
+  gameState.score = 0; gameState.frame = 1; gameState.roll = 1; gameState.missedFrames = 0;
+  gameState.ball = null; gameState.rolling = false; gameState.charging = false; gameState.power = 0; gameState.aim = 0;
+  aimSlider.value = 0; throwBtn.disabled = false; throwBtn.textContent = '🎳 HOLD & RELEASE';
+  setupPins(); updateDisplay();
 });
 
-/* ===== Start Game (Pay-Gated) ===== */
-playBtn.addEventListener('click', (e) => {
-  e.preventDefault();
-  payThen(() => {
-    document.getElementById('intro-overlay').classList.add('hidden');
-    gameState.gameActive = true;
-    setupPins();
-    updateDisplay();
-    gameLoop();
-  }, playBtn);
+/* ---- Start ---- */
+playBtn.addEventListener('click', () => {
+  document.getElementById('intro-overlay').classList.add('hidden');
+  gameState.gameActive = true; setupPins(); updateDisplay(); gameLoop();
 });
-
-/* ===== Play Again (Pay-Gated) ===== */
-// Note: Event handler is now set dynamically in endGame() function
-
-// Error handling
-window.addEventListener('error', e => console.error('Error:', e.error || e));
-window.addEventListener('unhandledrejection', e => console.error('Unhandled promise:', e.reason));
 </script>
 </body>
 </html>
