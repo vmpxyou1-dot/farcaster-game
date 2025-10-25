@@ -3,184 +3,128 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>🎳 Bowling Pro — Free Play</title>
+<title>🎳 Bowling Pro — Free Mini App</title>
 <style>
   :root { color-scheme: dark; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    background: linear-gradient(135deg, #0a0e13 0%, #1a1f2e 100%);
+    background: #000; /* black while splash shows */
     color: #e7ecf0;
     font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     min-height: 100dvh;
-    padding: 20px;
   }
-  .wrap { width: min(900px, 96vw); position: relative; }
-  .card { background: #12171b; border: 1px solid #1f2a32; border-radius: 14px; padding: 24px; box-shadow: 0 10px 30px rgba(0,0,0,.35); text-align: center; }
-  .overlay { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(8,11,14,.85); backdrop-filter: blur(4px); padding: 16px; z-index: 100; }
+
+  .wrap { width: min(900px, 96vw); margin: 0 auto; position: relative; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+
+  /* ---------- Splash (auto hides with timeout + onload) ---------- */
+  #splash {
+    position: fixed; inset: 0;
+    display: grid; place-items: center;
+    background: #000;
+    z-index: 9999;
+  }
+  .splash-inner {
+    display: grid; place-items: center; gap: 16px;
+    text-align: center;
+  }
+  .splash-logo {
+    width: min(60vw, 340px); height: auto;
+    border-radius: 16px; overflow: hidden;
+    background: radial-gradient(60% 60% at 25% 25%, #1f2937, #0b1220 60%, #000 100%);
+    display: grid; place-items: center;
+    aspect-ratio: 16/9;
+  }
+  .splash-logo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .splash-title { font-weight: 900; font-size: 18px; color: #9aa7b1; }
+
+  /* ---------- Overlay (centered title + button) ---------- */
+  .overlay {
+    position: fixed; inset: 0; display: grid; place-items: center;
+    background: rgba(8,11,14,.85); backdrop-filter: blur(4px); padding: 16px; z-index: 100;
+  }
   .hidden { display: none !important; }
-  
-  h1 {
-    font-size: 28px;
-    font-weight: 900;
-    margin-bottom: 12px;
-    text-shadow: 0 2px 10px rgba(56,189,248,0.5);
+  .card {
+    width: min(560px, 92vw);
+    background: #12171b; border: 1px solid #1f2a32; border-radius: 16px;
+    padding: 28px 22px; box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    text-align: center;
   }
-  
-  .muted {
-    color: #9aa7b1;
-    font-size: 14px;
-    line-height: 1.4;
-    margin-bottom: 16px;
-  }
-  
+  h1 { font-size: 28px; font-weight: 900; margin-bottom: 12px; text-shadow: 0 2px 10px rgba(56,189,248,0.5); }
+  .muted { color: #9aa7b1; font-size: 14px; line-height: 1.45; margin-bottom: 16px; }
   .btn-primary {
-    padding: 14px 28px;
-    background: linear-gradient(135deg, #ff8c42, #ff6b1a);
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-weight: 900;
-    font-size: 16px;
-    cursor: pointer;
-    box-shadow: 0 6px 20px rgba(255,107,26,0.4);
-    transition: all 0.2s;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    padding: 14px 28px; background: linear-gradient(135deg, #ff8c42, #ff6b1a);
+    color: #fff; border: none; border-radius: 12px; font-weight: 900; font-size: 16px; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255,107,26,0.4); transition: all .2s; text-transform: uppercase; letter-spacing: .5px;
   }
   .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(255,107,26,0.5); }
-  .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
-  
-  .btn-secondary {
-    padding: 12px 24px;
-    background: linear-gradient(135deg, #38bdf8, #34d399);
-    color: #0a1929;
-    border: none;
-    border-radius: 10px;
-    font-weight: 900;
-    font-size: 14px;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(56,189,248,0.3);
-    transition: all 0.2s;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-  }
-  .btn-reset { background: linear-gradient(135deg, #f43f5e, #f59e0b); }
-  
+
+  /* ---------- Game Area ---------- */
   #canvas {
-    background: #0d1117;
-    border: 3px solid #1f2937;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    max-width: 100%;
-    display: block;
-    margin: 20px auto;
-    touch-action: none;
+    background: #0d1117; border: 3px solid #1f2937; border-radius: 16px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5); max-width: 100%; display: block; margin: 20px auto; touch-action: none;
   }
-  
-  #controls {
-    width: 100%;
-    margin-top: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-  }
-  
-  .control-row {
-    background: rgba(15,23,42,0.8);
-    border: 2px solid #1e293b;
-    border-radius: 12px;
-    padding: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 15px;
-    flex-wrap: wrap;
-  }
-  
+
+  #controls { width: 100%; margin-top: 15px; display: flex; flex-direction: column; gap: 15px; }
+  .control-row { background: rgba(15,23,42,0.8); border: 2px solid #1e293b; border-radius: 12px; padding: 15px; display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap; }
   .control-group { display: flex; align-items: center; gap: 10px; }
-  
-  label {
-    font-weight: 700;
-    font-size: 14px;
-    color: #94a3b8;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  
-  input[type="range"] {
-    width: 200px;
-    height: 8px;
-    border-radius: 10px;
-    background: linear-gradient(90deg, #ef4444 0%, #fbbf24 50%, #ef4444 100%);
-    outline: none; -webkit-appearance: none;
-  }
-  input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 20px; height: 20px; border-radius: 50%;
-    background: white; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-  }
-  
+  label { font-weight: 700; font-size: 14px; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; }
+  input[type="range"] { width: 200px; height: 8px; border-radius: 10px; background: linear-gradient(90deg, #ef4444 0%, #fbbf24 50%, #ef4444 100%); outline: none; -webkit-appearance: none; }
+  input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px; border-radius: 50%; background: white; cursor: pointer; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
   .score-display { font-size: 18px; font-weight: 700; color: #fbbf24; }
-  
-  .power-bar {
-    width: 250px; height: 14px; background: #1e293b;
-    border-radius: 20px; overflow: hidden; border: 2px solid #334155;
-  }
-  .power-fill {
-    height: 100%; width: 0%;
-    background: linear-gradient(90deg, #22c55e, #fbbf24, #ef4444);
-    transition: width 0.05s linear;
-  }
-  
+
+  .power-bar { width: 250px; height: 14px; background: #1e293b; border-radius: 20px; overflow: hidden; border: 2px solid #334155; }
+  .power-fill { height: 100%; width: 0%; background: linear-gradient(90deg, #22c55e, #fbbf24, #ef4444); transition: width .05s linear; }
   .info { color: #94a3b8; font-size: 13px; }
-  
-  #status {
-    margin-top: 15px; font-size: 13px; line-height: 1.5;
-    background: #0f151a; border: 1px solid #1f2a32;
-    border-radius: 10px; padding: 12px;
-  }
-  #status b { color: #cde7d8; }
-  #status .ok { color: #4ade80; }
-  #status .warn { color: #fbbf24; }
-  #status .err { color: #f87171; }
-  #status a { color: #86c6ff; text-decoration: none; }
-  
+
+  #status { margin-top: 15px; font-size: 13px; line-height: 1.5; background: #0f151a; border: 1px solid #1f2a32; border-radius: 10px; padding: 12px; }
+  #status b { color: #cde7d8; } #status .ok { color: #4ade80; } #status .warn { color: #fbbf24; } #status .err { color: #f87171; } #status a { color: #86c6ff; text-decoration: none; }
+
   #play-again {
     position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-    padding: 16px 32px; background: linear-gradient(135deg, #ff8c42, #ff6b1a);
-    color: #fff; border: none; border-radius: 12px; font-weight: 900; font-size: 18px;
-    cursor: pointer; box-shadow: 0 10px 40px rgba(255,107,26,0.5); z-index: 50;
+    padding: 16px 32px; background: linear-gradient(135deg, #ff8c42, #ff6b1a); color: #fff; border: none;
+    border-radius: 12px; font-weight: 900; font-size: 18px; cursor: pointer; box-shadow: 0 10px 40px rgba(255,107,26,0.5); z-index: 50;
   }
-  
-  @keyframes bounce {
-    0%, 100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-  }
-  @media (max-width: 720px) {
-    input[type="range"] { width: 150px; }
-    .power-bar { width: 180px; }
-  }
+
+  @keyframes bounce { 0%, 100% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; } 50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; } }
+  @media (max-width: 720px) { input[type="range"] { width: 150px; } .power-bar { width: 180px; } }
 </style>
 </head>
 <body>
+  <!-- Splash with resilient image handling -->
+  <div id="splash">
+    <div class="splash-inner">
+      <div class="splash-logo" id="splashLogo">
+        <!-- Inline SVG fallback so you never see a broken img -->
+        <svg viewBox="0 0 600 338" width="100%" height="100%" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+          <defs>
+            <linearGradient id="g" x1="0" x2="1">
+              <stop offset="0" stop-color="#0ea5e9"/>
+              <stop offset="1" stop-color="#22c55e"/>
+            </linearGradient>
+          </defs>
+          <rect width="600" height="338" fill="#0b1220"/>
+          <circle cx="150" cy="170" r="70" fill="url(#g)"/>
+          <text x="260" y="190" font-size="42" font-weight="900" fill="#e7ecf0" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">Bowling Pro</text>
+        </svg>
+      </div>
+      <div class="splash-title">Loading…</div>
+    </div>
+  </div>
+
   <div class="wrap">
-    <!-- Intro Overlay (centered) -->
-    <div id="intro-overlay" class="overlay">
+    <!-- Intro Overlay (centered title & Play Now) -->
+    <div id="intro-overlay" class="overlay hidden">
       <div class="card" role="dialog" aria-modal="true">
         <h1>🎳 Play Bowling Pro</h1>
         <p class="muted">Free to play — aim with the slider, hold to charge, release to throw.</p>
-        <div style="display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap;">
-          <button id="play" class="btn-primary">🕹️ Play Now</button>
-        </div>
+        <button id="play" class="btn-primary">🕹️ Play Now</button>
         <div id="status" class="hidden"></div>
       </div>
     </div>
 
+    <!-- Game -->
     <canvas id="canvas" width="900" height="600"></canvas>
-    
+
     <div id="controls">
       <div class="control-row">
         <div class="control-group">
@@ -194,11 +138,11 @@
           <span class="info" id="powerValue">0%</span>
         </div>
       </div>
-      
+
       <div class="control-row">
         <div class="control-group">
-          <button id="throwBtn" class="btn-secondary">🎳 HOLD & RELEASE</button>
-          <button id="resetBtn" class="btn-secondary btn-reset">🔄 RESET</button>
+          <button id="throwBtn" class="btn-primary" style="background:linear-gradient(135deg,#38bdf8,#34d399);color:#0a1929">🎳 HOLD & RELEASE</button>
+          <button id="resetBtn" class="btn-primary" style="background:linear-gradient(135deg,#f43f5e,#f59e0b)">🔄 RESET</button>
         </div>
         <div class="control-group">
           <span class="info">Frame:</span><span class="score-display" id="frameDisplay">1/10</span>
@@ -214,9 +158,33 @@
   </div>
 
 <script>
-/* ===== Free-to-Play Version: NO wallet or payment code ===== */
+/* =================== Splash handling (never stuck) =================== */
+/* If you want to use a real image, set SPLASH_URL. If it fails, SVG stays. */
+const SPLASH_URL = ""; // e.g. "https://your-cdn.com/splash.png"
+(function mountSplash(){
+  const splash = document.getElementById('splash');
+  const logo = document.getElementById('splashLogo');
 
-/* ===== Game State ===== */
+  function hideSplash() {
+    splash.classList.add('hidden');
+    document.body.style.background = "linear-gradient(135deg, #0a0e13 0%, #1a1f2e 100%)";
+    document.getElementById('intro-overlay').classList.remove('hidden');
+  }
+
+  // hard timeout as safety
+  const safety = setTimeout(hideSplash, 1800);
+
+  if (SPLASH_URL) {
+    const img = new Image();
+    img.onload = () => { logo.innerHTML = ""; logo.appendChild(img); clearTimeout(safety); setTimeout(hideSplash, 200); };
+    img.onerror = () => { /* keep SVG */ clearTimeout(safety); setTimeout(hideSplash, 500); };
+    img.src = SPLASH_URL;
+    img.alt = "Splash";
+    img.style = "width:100%;height:100%;object-fit:cover;display:block;";
+  }
+})();
+
+/* =================== Game (free-to-play) =================== */
 let gameState = {
   pins: [],
   ball: null,
@@ -235,12 +203,326 @@ let gameState = {
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const statusEl = document.getElementById('status');
 const playBtn = document.getElementById('play');
 const playAgainBtn = document.getElementById('play-again');
 const aimSlider = document.getElementById('aimSlider');
 const aimValue = document.getElementById('aimValue');
 const powerBar = document.getElementById('powerBar');
 const powerValue = document.getElementById('powerValue');
-const throwBtn = document.getElementBy
+const throwBtn = document.getElementById('throwBtn');
+const resetBtn = document.getElementById('resetBtn');
+const frameDisplay = document.getElementById('frameDisplay');
+const rollDisplay = document.getElementById('rollDisplay');
+const scoreDisplay = document.getElementById('scoreDisplay');
+const missDisplay = document.getElementById('missDisplay');
+const pinsDisplay = document.getElementById('pinsDisplay');
 
+const lane = { x: 150, y: 50, width: 600, height: 500, foulLine: 50 + 500 - 80 };
+
+/* ---- Pins ---- */
+function setupPins() {
+  gameState.pins = [];
+  const startX = canvas.width / 2;
+  const startY = lane.y + 80;
+  const spacing = 40;
+
+  let pinId = 0;
+  for (let row = 0; row < 4; row++) {
+    for (let col = 0; col <= row; col++) {
+      gameState.pins.push({
+        id: pinId++,
+        x: startX + (col - row / 2) * spacing,
+        y: startY + row * spacing,
+        radius: 12,
+        alive: true
+      });
+    }
+  }
+}
+
+/* ---- Draw ---- */
+function drawLane() {
+  const plankWidth = lane.width / 15;
+  for (let i = 0; i < 15; i++) {
+    ctx.fillStyle = i % 2 === 0 ? '#c9965f' : '#a67945';
+    ctx.fillRect(lane.x + i * plankWidth, lane.y, plankWidth, lane.height);
+  }
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(canvas.width / 2, lane.y);
+  ctx.lineTo(canvas.width / 2, lane.y + lane.height);
+  ctx.stroke();
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(lane.x, lane.foulLine, lane.width, 4);
+
+  ctx.fillStyle = 'rgba(100,80,60,0.3)';
+  ctx.fillRect(lane.x, lane.foulLine, lane.width, lane.y + lane.height - lane.foulLine);
+}
+
+function drawPins() {
+  for (const pin of gameState.pins) {
+    if (!pin.alive) continue;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(pin.x + 4, pin.y + 8, 10, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(pin.x, pin.y, pin.radius, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(pin.x, pin.y - 2, pin.radius - 4, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.beginPath();
+    ctx.arc(pin.x - 4, pin.y - 4, 4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function drawBall() {
+  if (!gameState.ball) return;
+  const b = gameState.ball;
+
+  ctx.fillStyle = 'rgba(0,0,0,0.4)';
+  ctx.beginPath();
+  ctx.ellipse(b.x + 6, b.y + 10, 12, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const gradient = ctx.createRadialGradient(b.x - 8, b.y - 8, 5, b.x, b.y, b.radius);
+  gradient.addColorStop(0, '#ff9a56');
+  gradient.addColorStop(1, '#ff6b1a');
+
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(b.x, b.y, b.radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath();
+  ctx.arc(b.x - 4, b.y - 2, 3, 0, Math.PI * 2);
+  ctx.arc(b.x + 4, b.y - 2, 3, 0, Math.PI * 2);
+  ctx.arc(b.x, b.y + 5, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255,255,255,0.4)';
+  ctx.beginPath();
+  ctx.arc(b.x - 6, b.y - 6, 5, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+/* ---- Physics ---- */
+function spawnBall() {
+  const startX = canvas.width / 2 + gameState.aim * 3;
+  const startY = lane.foulLine + 30;
+
+  gameState.ball = {
+    x: startX,
+    y: startY,
+    vx: gameState.aim * 0.15,
+    vy: -(8 + 6 * gameState.power),
+    radius: 14,
+    returning: false
+  };
+
+  gameState.rolling = true;
+}
+
+function updateBall() {
+  if (!gameState.ball) return;
+  const b = gameState.ball;
+
+  b.vx += gameState.aim * 0.03;
+  b.x += b.vx;
+  b.y += b.vy;
+
+  b.vx *= 0.992;
+  b.vy *= 0.996;
+
+  if (!b.returning && (b.y < lane.y + 60 || b.vy > -0.5)) {
+    b.returning = true;
+    b.vy = Math.abs(b.vy) || 3;
+  }
+
+  if (b.returning) {
+    if (b.vy < 2) b.vy = 2;
+    if (b.y >= lane.foulLine + 30) {
+      gameState.ball = null;
+      gameState.rolling = false;
+      handleRollComplete();
+    }
+  }
+
+  checkPinCollisions();
+}
+
+function checkPinCollisions() {
+  if (!gameState.ball) return;
+  const b = gameState.ball;
+
+  for (const pin of gameState.pins) {
+    if (!pin.alive) continue;
+
+    const dx = b.x - pin.x;
+    const dy = b.y - pin.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    if (distance < b.radius + pin.radius) {
+      pin.alive = false;
+      gameState.score += 10;
+
+      const nx = dx / distance;
+      const ny = dy / distance;
+      const dot = b.vx * nx + b.vy * ny;
+      b.vx -= 1.5 * dot * nx;
+      b.vy -= 1.5 * dot * ny;
+    }
+  }
+  updateDisplay();
+}
+
+/* ---- Rolls / Frames ---- */
+function handleRollComplete() {
+  const pinsKnocked = 10 - gameState.pins.filter(p => p.alive).length;
+
+  if (gameState.roll === 1) {
+    if (pinsKnocked === 10) { showMessage('STRIKE! ⚡', '#fbbf24'); gameState.missedFrames = 0; nextFrame(); }
+    else { gameState.roll = 2; }
+  } else if (gameState.roll === 2) {
+    if (pinsKnocked === 10) { showMessage('SPARE! ✨', '#34d399'); gameState.missedFrames = 0; nextFrame(); }
+    else { gameState.roll = 3; }
+  } else {
+    if (pinsKnocked === 0) {
+      gameState.missedFrames++;
+      showMessage('MISS! ❌ (' + gameState.missedFrames + '/3)', '#ef4444');
+      if (gameState.missedFrames >= gameState.maxMissedFrames) {
+        setTimeout(() => { showMessage('3 MISSES - GAME OVER! 💀', '#ef4444'); setTimeout(endGame, 1500); }, 1000);
+        return;
+      }
+    } else {
+      gameState.missedFrames = 0;
+    }
+    nextFrame();
+  }
+  updateDisplay();
+}
+
+function nextFrame() {
+  if (gameState.frame >= 10) { endGame(); return; }
+  gameState.frame++; gameState.roll = 1;
+  setTimeout(() => { setupPins(); updateDisplay(); }, 800);
+}
+
+function endGame() {
+  gameState.gameActive = false;
+  throwBtn.disabled = true;
+
+  ctx.fillStyle = 'rgba(0,0,0,0.7)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#e7ecf0'; ctx.font = 'bold 48px system-ui'; ctx.textAlign = 'center';
+  ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 60);
+
+  ctx.font = 'bold 32px system-ui'; ctx.fillStyle = '#fbbf24';
+  ctx.fillText('Final Score: ' + gameState.score, canvas.width / 2, canvas.height / 2 - 10);
+
+  if (gameState.missedFrames >= gameState.maxMissedFrames) {
+    ctx.font = 'bold 24px system-ui'; ctx.fillStyle = '#ef4444';
+    ctx.fillText('Lost: 3 Consecutive Misses', canvas.width / 2, canvas.height / 2 + 30);
+  }
+
+  ctx.font = '18px system-ui'; ctx.fillStyle = '#a8b6c1';
+  ctx.fillText('Click button below to continue', canvas.width / 2, canvas.height / 2 + 65);
+
+  playAgainBtn.classList.remove('hidden');
+  playAgainBtn.onclick = () => {
+    playAgainBtn.classList.add('hidden');
+    gameState.score = 0; gameState.frame = 1; gameState.roll = 1; gameState.missedFrames = 0;
+    gameState.ball = null; gameState.rolling = false; gameState.gameActive = true;
+    throwBtn.disabled = false; throwBtn.textContent = '🎳 HOLD & RELEASE';
+    setupPins(); updateDisplay();
+  };
+}
+
+/* ---- FX ---- */
+function showMessage(text, color) {
+  const msgDiv = document.createElement('div');
+  msgDiv.textContent = text;
+  msgDiv.style.cssText = `
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    font-size: 48px; font-weight: 900; color: ${color}; text-shadow: 0 0 30px ${color};
+    pointer-events: none; z-index: 1000; animation: bounce 1s ease-out;
+  `;
+  document.body.appendChild(msgDiv);
+  setTimeout(() => msgDiv.remove(), 1200);
+}
+
+/* ---- Power ---- */
+let chargeInterval;
+function startCharging() {
+  if (gameState.rolling || !gameState.gameActive) return;
+  gameState.charging = true; gameState.power = 0;
+  throwBtn.textContent = '🎳 RELEASE NOW!';
+  chargeInterval = setInterval(() => {
+    gameState.power += 0.02; if (gameState.power > 1) gameState.power = 1;
+    powerBar.style.width = (gameState.power * 100) + '%';
+    powerValue.textContent = Math.round(gameState.power * 100) + '%';
+  }, 20);
+}
+function stopCharging() {
+  if (!gameState.charging) return;
+  gameState.charging = false; clearInterval(chargeInterval);
+  throwBtn.textContent = '🎳 HOLD & RELEASE'; spawnBall();
+}
+
+/* ---- Display ---- */
+function updateDisplay() {
+  const pinsStanding = gameState.pins.filter(p => p.alive).length;
+  scoreDisplay.textContent = gameState.score;
+  frameDisplay.textContent = gameState.frame + '/10';
+  rollDisplay.textContent = gameState.roll + '/3';
+  missDisplay.textContent = gameState.missedFrames + '/3';
+  pinsDisplay.textContent = pinsStanding + '/10';
+  if (gameState.missedFrames === 0) missDisplay.style.color = '#34d399';
+  else if (gameState.missedFrames === 1) missDisplay.style.color = '#fbbf24';
+  else if (gameState.missedFrames === 2) missDisplay.style.color = '#fb923c';
+  else missDisplay.style.color = '#ef4444';
+}
+
+/* ---- Loop ---- */
+function gameLoop() {
+  ctx.fillStyle = '#0d1117'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  drawLane(); drawPins(); drawBall();
+  if (gameState.rolling) updateBall();
+  requestAnimationFrame(gameLoop);
+}
+
+/* ---- Controls ---- */
+aimSlider.addEventListener('input', (e) => { gameState.aim = parseInt(e.target.value, 10); aimValue.textContent = gameState.aim + '°'; });
+throwBtn.addEventListener('mousedown', startCharging);
+throwBtn.addEventListener('touchstart', startCharging, {passive:true});
+window.addEventListener('mouseup', stopCharging);
+window.addEventListener('touchend', stopCharging);
+
+resetBtn.addEventListener('click', () => {
+  gameState.score = 0; gameState.frame = 1; gameState.roll = 1; gameState.missedFrames = 0;
+  gameState.ball = null; gameState.rolling = false; gameState.charging = false; gameState.power = 0; gameState.aim = 0;
+  aimSlider.value = 0; throwBtn.disabled = false; throwBtn.textContent = '🎳 HOLD & RELEASE';
+  setupPins(); updateDisplay();
+});
+
+/* ---- Start ---- */
+playBtn.addEventListener('click', () => {
+  document.getElementById('intro-overlay').classList.add('hidden');
+  gameState.gameActive = true; setupPins(); updateDisplay(); gameLoop();
+});
+</script>
+</body>
+</html>
