@@ -7,7 +7,7 @@
   "miniapp": {
     "version": "1",
     "name": "Farcaster Game",
-    "iconUrl": "https://raw.githubusercontent.com/enchanted-assets/public/main/icons/tetris-icon.png",
+    "iconUrl": "https://encrypted-tbn3.gstatic.com/images?q=tbn:ANd9GcTsNqMt1Hzk3sVts5vdds1J9bCThaDCDwJiIdHRtx_d7qBxqULuk9maEamO-c4_p3BYvb4m3fKJRCOJsuLXq3p4AdARlbzZba8luotMopH6",
     "homeUrl": "https://farcaster-game-two.vercel.app/",
     "imageUrl": "https://raw.githubusercontent.com/enchanted-assets/public/main/images/tetris-cover.png",
     "buttonTitle": "Play Now",
