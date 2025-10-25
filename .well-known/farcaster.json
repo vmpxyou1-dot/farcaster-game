@@ -7,11 +7,11 @@
   "miniapp": {
     "version": "1",
     "name": "Farcaster Game",
-    "iconUrl": "https://upload.wikimedia.org/wikipedia/commons/7/7c/Game_icon.png",
+    "iconUrl": "https://raw.githubusercontent.com/enchanted-assets/public/main/icons/tetris-icon.png",
     "homeUrl": "https://farcaster-game-two.vercel.app/",
-    "imageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Tetris_Gameplay.jpg/640px-Tetris_Gameplay.jpg",
+    "imageUrl": "https://raw.githubusercontent.com/enchanted-assets/public/main/images/tetris-cover.png",
     "buttonTitle": "Play Now",
-    "splashImageUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Tetris_Gameplay.jpg/640px-Tetris_Gameplay.jpg",
+    "splashImageUrl": "https://raw.githubusercontent.com/enchanted-assets/public/main/images/tetris-splash.png",
     "splashBackgroundColor": "#000000",
     "description": "Play a fun web game directly in Farcaster!"
   }
