@@ -580,7 +580,7 @@ function handleRollComplete() {
     if (pinsKnocked === 10) {
       // Strike!
       showMessage('STRIKE! ⚡', '#fbbf24');
-      gameState.missedFrames = 0; // Reset missed count on strike
+      gameState.missedFrames = 0;
       nextFrame();
     } else {
       gameState.roll = 2;
@@ -589,18 +589,16 @@ function handleRollComplete() {
     if (pinsKnocked === 10) {
       // Spare!
       showMessage('SPARE! ✨', '#34d399');
-      gameState.missedFrames = 0; // Reset missed count on spare
+      gameState.missedFrames = 0;
       nextFrame();
     } else {
       gameState.roll = 3;
     }
   } else if (gameState.roll === 3) {
-    // Check if all 3 rolls missed (no pins knocked down)
     if (pinsKnocked === 0) {
       gameState.missedFrames++;
       showMessage('MISS! ❌ (' + gameState.missedFrames + '/3)', '#ef4444');
       
-      // Check if lost (3 misses)
       if (gameState.missedFrames >= gameState.maxMissedFrames) {
         setTimeout(() => {
           showMessage('3 MISSES - GAME OVER! 💀', '#ef4444');
@@ -609,7 +607,7 @@ function handleRollComplete() {
         return;
       }
     } else {
-      gameState.missedFrames = 0; // Reset if any pins were knocked
+      gameState.missedFrames = 0;
     }
     nextFrame();
   }
@@ -657,15 +655,12 @@ function endGame() {
   ctx.fillStyle = '#a8b6c1';
   ctx.fillText('Click button below to continue', canvas.width / 2, canvas.height / 2 + 65);
   
-  // Show play again button with payment flow
   playAgainBtn.classList.remove('hidden');
   playAgainBtn.onclick = async (e) => {
     e.preventDefault();
     await payThen(async () => {
-      // Hide overlay and button
       playAgainBtn.classList.add('hidden');
       
-      // Reset game state
       gameState.score = 0;
       gameState.frame = 1;
       gameState.roll = 1;
@@ -727,7 +722,6 @@ function updateDisplay() {
   missDisplay.textContent = gameState.missedFrames + '/3';
   pinsDisplay.textContent = pinsStanding + '/10';
   
-  // Change miss color based on count
   if (gameState.missedFrames === 0) {
     missDisplay.style.color = '#34d399';
   } else if (gameState.missedFrames === 1) {
@@ -759,3 +753,15 @@ function gameLoop() {
 aimSlider.addEventListener('input', (e) => {
   gameState.aim = parseInt(e.target.value);
   aimValue.textContent = gameState.aim + '°';
+});
+
+throwBtn.addEventListener('mousedown', startCharging);
+throwBtn.addEventListener('touchstart', startCharging);
+window.addEventListener('mouseup', stopCharging);
+window.addEventListener('touchend', stopCharging);
+
+resetBtn.addEventListener('click', async (e) => {
+  e.preventDefault();
+  await payThen(async () => {
+    gameState.score = 0;
+    gameState.frame =
